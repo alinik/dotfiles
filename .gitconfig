@@ -1,0 +1,9 @@
+[user]
+	email = ali@nikneshan.com
+	name = علی نیک نشان
+	email = nikneshan@baregheh.com
+	signingkey = 9C6C1891
+[core]
+	autocrlf = input
+[diff]
+	algorithm = patience
