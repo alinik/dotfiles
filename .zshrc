@@ -7,6 +7,7 @@ docker docker-compose
 lxd-completion kubectl
 postgres sublime fabric git
 pip python virtualenv virtualenvwrapper autoenv
+nvm 
 systemd supervisor
 ubuntu common-aliases zsh_reload ssh-agent sudo
 ali-aliases
@@ -16,4 +17,4 @@ source $ZSH/oh-my-zsh.sh
 source /usr/local/bin/virtualenvwrapper_lazy.sh
 export VIRTUAL_ENV_DISABLE_PROMPT=0
 unalias rm
-
+#export PATH="$PATH:`yarn global bin`"
