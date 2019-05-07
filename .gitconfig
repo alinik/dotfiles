@@ -2,7 +2,7 @@
 	email = ali@nikneshan.com
 	name = علی نیک نشان
 	email = nikneshan@baregheh.com
-	signingkey = 9C6C1891
+	signingkey = 5B092FB89BD914FC
 [core]
 	autocrlf = input
 [diff]
