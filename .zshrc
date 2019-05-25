@@ -18,4 +18,3 @@ source /usr/local/bin/virtualenvwrapper_lazy.sh
 export VIRTUAL_ENV_DISABLE_PROMPT=0
 unalias rm
 #export PATH="$PATH:`yarn global bin`"
-export EDITOR=vim
