@@ -382,4 +382,7 @@ ip r a 5.144.134.0/24 via 192.168.1.1 # cdn.p30download.com
 ip r a  91.189.89.32 via 192.168.1.1 # mirrors.ubuntu.com
 ip r a 185.223.44.7 via 192.168.1.1 # ib.bpi.ir
 ip r a 185.55.226.40 via 192.168.1.1 # dl.royalmind.ir
-ip r s 185.142.156.0/24 via 192.168.1.1 # ir.archive.ubuntu.com
+ip r a 185.142.156.0/24 via 192.168.1.1 # ir.archive.ubuntu.com
+ip r a 94.182.0.0/15 via 192.168.1.1 # xaas.ir
+ip r a 171.22.26.0/24 via 192.168.1.1 # motamem.org
+ip r a 185.143.232.0/24 via 192.168.1.1 # ikco.ir
