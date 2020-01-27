@@ -11,6 +11,7 @@ nvm
 systemd supervisor
 ubuntu common-aliases zsh_reload ssh-agent sudo
 ali-aliases
+zsh-syntax-highlighting
 )
 export PATH="$HOME/bin:/snap/bin:$PATH"
 source $ZSH/oh-my-zsh.sh
