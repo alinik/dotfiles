@@ -388,3 +388,5 @@ ip r a 185.143.232.0/24 via 192.168.1.1 # ikco.ir
 ip r a 31.24.232.0/21 via 192.168.1.1 # tehran.ir
 ip r a 88.135.37.0/24 via 192.168.1.1 # faradars.org
 ip r a 193.34.244.0/24 via 192.168.1.1 #Mofid CDIR
+ip r a 185.143.234.0/24 via 192.168.1.1 #arvan
+ip r a 185.143.233.0/24 via 192.168.1.1 #arvan
