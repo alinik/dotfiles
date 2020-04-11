@@ -1,0 +1,16 @@
+[Unit]
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=forking
+PIDFile=/home/ali/.devpi/server/.xproc/devpi-server/xprocess.PID
+Restart=always
+ExecStart=/usr/local/bin/devpi-server --port 4000 --mirror-cache-expiry 25920000 --role master --host=0.0.0.0 --start
+ExecStop=/usr/local/bin/devpi-server --port 4000 --mirror-cache-expiry 25920000 --role master --host=0.0.0.0 --stop
+User=ali
+SuccessExitStatus=SIGKILL
+
+[Install]
+WantedBy=multi-user.target
+

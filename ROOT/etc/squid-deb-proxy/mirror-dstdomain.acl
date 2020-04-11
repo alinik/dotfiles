@@ -1,0 +1,34 @@
+# mirror-dstdomain.conf
+# 
+# network destinations that are allowed by this cache
+
+# default ubuntu and ubuntu country archive mirrors
+.archive.ubuntu.com 
+ports.ubuntu.com 
+security.ubuntu.com
+ddebs.ubuntu.com
+mirrors.ubuntu.com
+ubuntu.parspack.com
+ubuntu.asis.io
+ubuntu-mirror.parsdev.net
+#official third party repositories
+.archive.canonical.com
+.extras.ubuntu.com
+packages.ntop.org
+download.sublimetext.com
+repository.azae.net
+# default changelogs location, this includes changelogs and the meta-release
+# file that has information about new ubuntu versions
+changelogs.ubuntu.com
+ppa.launchpad.net
+# additional destinations can be added to the directory:
+#  /etc/squid-deb-proxy/mirror-dstdomain.acl.d
+deb.nodesource.com
+.yarnpkg.com
+ppa.launchpad.net
+.atlassian.com
+binaries.erlang-solutions.com
+ubuntu.parspack.net
+.kaspersky.com
+.kaspersky-labs.com
+packages.microsoft.com
