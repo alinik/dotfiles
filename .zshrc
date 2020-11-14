@@ -4,9 +4,10 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/g
 ZSH_THEME="ali"
 plugins=(
 docker docker-compose
-lxd-completion kubectl
+lxd-completion 
 postgres sublime fabric git
-pip python virtualenv virtualenvwrapper autoenv
+pip python virtualenv 
+autoenv
 nvm 
 systemd supervisor
 ubuntu common-aliases zsh_reload ssh-agent sudo
@@ -15,8 +16,6 @@ zsh-syntax-highlighting
 )
 export PATH="$HOME/bin:/snap/bin:$PATH"
 source $ZSH/oh-my-zsh.sh
-source /usr/local/bin/virtualenvwrapper_lazy.sh
-export VIRTUAL_ENV_DISABLE_PROMPT=0
 unalias rm
 #export PATH="$PATH:`yarn global bin`"
 
