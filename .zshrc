@@ -13,6 +13,7 @@ systemd supervisor
 ubuntu common-aliases zsh_reload ssh-agent sudo
 ali-aliases
 fast-syntax-highlighting
+zsh-autosuggestions
 alias-tips
 )
 export PATH="$HOME/bin:/snap/bin:$PATH"
