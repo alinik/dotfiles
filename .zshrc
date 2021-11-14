@@ -10,7 +10,7 @@ pip python virtualenv
 autoenv
 nvm 
 systemd supervisor
-ubuntu common-aliases zsh_reload ssh-agent sudo
+ubuntu common-aliases ssh-agent sudo
 ali-aliases
 zsh-syntax-highlighting
 )
