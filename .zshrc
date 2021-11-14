@@ -15,6 +15,7 @@ ali-aliases
 fast-syntax-highlighting
 zsh-autosuggestions
 alias-tips
+colored-man-pages
 )
 export PATH="$HOME/bin:/snap/bin:$PATH"
 source $ZSH/oh-my-zsh.sh
