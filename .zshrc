@@ -7,6 +7,7 @@ docker docker-compose
 lxd-completion 
 postgres sublime fabric git
 pip python virtualenv 
+poetry
 autoenv
 nvm 
 systemd supervisor
