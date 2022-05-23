@@ -8,6 +8,7 @@ docker docker-compose
 postgres 
 git
 pip python virtualenv 
+poetry
 systemd 
 ubuntu common-aliases ssh-agent sudo
 ali-aliases
