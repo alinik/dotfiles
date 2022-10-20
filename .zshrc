@@ -16,6 +16,7 @@ fast-syntax-highlighting
 zsh-autosuggestions
 alias-tips
 colored-man-pages
+kubectl
 )
 source $ZSH/oh-my-zsh.sh
 unalias rm

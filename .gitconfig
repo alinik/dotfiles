@@ -1,8 +1,8 @@
 [user]
 	email = ali@nikneshan.com
-	name = علی نیک نشان
-	email = nikneshan@baregheh.com
-	signingkey = 5B092FB89BD914FC
+	name = Ali Nikneshan
+	email = ali@mybitmax.com
+    signingkey = 5B092FB89BD914FC
 [core]
 	autocrlf = input
 	quotepath = false
@@ -11,3 +11,5 @@
 [alias]
     hide = update-index --assume-unchanged
     unhide = update-index --no-assume-unchanged
+[init]
+	defaultBranch = master
