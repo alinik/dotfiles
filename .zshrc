@@ -19,9 +19,12 @@ alias-tips
 colored-man-pages
 kubectl
 podman
-buildah
+vault
 )
 source $ZSH/oh-my-zsh.sh
 unalias rm
 #export PATH="$PATH:`yarn global bin`"
+export VAULT_ADDR="https://keys.mybitmax.com"
+
+
 
