@@ -11,8 +11,7 @@ git
 pip python virtualenv 
 poetry
 systemd 
-ubuntu common-aliases ssh-agent sudo
-ali-aliases
+ubuntu common-aliases sudo ali-aliases
 fast-syntax-highlighting
 zsh-autosuggestions
 alias-tips
@@ -21,6 +20,8 @@ kubectl
 podman
 vault
 )
+[ -e $HOME/.ssh/id_rsa -o -e  $HOME/.ssh/id_ed255191 -o -e $HOME/.ssh/id_ecdsa ] && plugins=(${plugins} ssh-agent)
+
 source $ZSH/oh-my-zsh.sh
 unalias rm
 #export PATH="$PATH:`yarn global bin`"
