@@ -20,7 +20,7 @@ kubectl
 podman
 vault
 )
-[ -e $HOME/.ssh/id_rsa -o -e  $HOME/.ssh/id_ed255191 -o -e $HOME/.ssh/id_ecdsa ] && plugins=(${plugins} ssh-agent)
+[ -e $HOME/.ssh/id_rsa -o -e  $HOME/.ssh/id_ed25519 -o -e $HOME/.ssh/id_ecdsa ] && plugins=(${plugins} ssh-agent)
 
 source $ZSH/oh-my-zsh.sh
 unalias rm
