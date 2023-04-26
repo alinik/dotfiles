@@ -16,3 +16,9 @@
     changed_when: False
     tags:
       - cleanup 
+  - name: free swap
+    shell:
+      cmd: swapoff -a #&& swapon -a
+#    changed_when: False
+    tags:
+      - memfree
