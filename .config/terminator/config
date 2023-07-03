@@ -1,7 +1,10 @@
 [global_config]
   title_transmit_bg_color = "#204a87"
   inactive_color_offset = 0.7345679012345679
+  enabled_plugins = LaunchpadBugURLHandler, LaunchpadCodeURLHandler, APTURLHandler, InactivityWatch
   suppress_multiple_term_dialog = True
+  title_use_system_font = False
+  title_font = IntelOne Mono 9
 [keybindings]
   rotate_ccw = None
   toggle_scrollbar = None
