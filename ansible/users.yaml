@@ -2,14 +2,25 @@
   become: true
   # strategy: free
   tasks:
+  - name: create ssh_users group
+    ansible.builtin.group:
+      name: ssh_users
+      state: present
+
   - name: Add the user 'ali' 
     ansible.builtin.user:
       name: ali
       comment: Ali Nikneshan
       groups: ssh_users
       state: present
-      shell: /bin/bash
+      shell: /bin/zsh
 
+  - name: ensure .ssh exist for ali
+    file: 
+      path: /home/ali/.ssh
+      state: directory
+      owner: ali
+      mode: 0700
   - name: Add ali pubkey
     ansible.posix.authorized_key:
       user: ali
@@ -23,7 +34,13 @@
       groups: ssh_users
       state: present
       shell: /bin/bash
-
+  - name: ensure .ssh exist for fateme
+    file: 
+      path: /home/fateme/.ssh
+      state: directory
+      owner: fateme
+      mode: 0700
+ 
   - name: Add fateme pubkey
     ansible.posix.authorized_key:
       user: fateme
@@ -37,7 +54,13 @@
       groups: ssh_users
       state: present
       shell: /bin/bash
-
+  - name: ensure .ssh exist for sohrab
+    file: 
+      path: /home/sohrab/.ssh
+      state: directory
+      owner: sohrab
+      mode: 0700
+ 
   - name: Add sohrab pubkey
     ansible.posix.authorized_key:
       user: sohrab
@@ -50,6 +73,13 @@
       comment: Application Runner
       state: present
       shell: /bin/bash
+
+  - name: ensure .ssh exist for app
+    file: 
+      path: /home/app/.ssh
+      state: directory
+      owner: app
+      mode: 0700
   
   - name: Copy private_key for App User
     ansible.builtin.copy:

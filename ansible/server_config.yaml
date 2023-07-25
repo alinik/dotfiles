@@ -1,6 +1,6 @@
 - hosts: all
   become: true
-  # strategy: free
+  strategy: free
   tasks:
   - name: create ssh_users group
     ansible.builtin.group:
@@ -11,37 +11,18 @@
     copy:
       src: app/sshd_config.j2
       dest: /etc/ssh/sshd_config
-      register: service_conf
   
   - name: restart ssh
     ansible.builtin.service:
       name: ssh
       state: restarted
-      when: service_conf.changed
 
-  - name: Add Docker GPG apt Key
-    apt_key:
-      url: https://download.docker.com/linux/ubuntu/gpg
-      state: present
- 
-  - name: Add Docker Repository
-    apt_repository:
-      repo: deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu  jammy stable
-      state: present
- 
-  - name: Update apt and install docker-ce
-    apt: update_cache=yes name=docker-ce state=latest
-
-  - name: disable docker
-    ansible.builtin.systemd:
-      name: docker
-      state: stopped
-      enable: false
-  - name: install uidmap
+  - name: install needed packages
     ansible.builtin.apt:
-    name: uidmap
-    state: present
- 
-
-    apt-get install -y uidmap
-    loginctl enable-linger $USER
+      name: "{{ item }}"
+      state: present
+    loop:
+      - uidmap
+      - zsh
+      - git
+      - prometheus-node-exporter
