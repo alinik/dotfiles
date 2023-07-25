@@ -1,0 +1,88 @@
+- hosts: all
+  become: true
+  # strategy: free
+  tasks:
+  - name: Add the user 'ali' 
+    ansible.builtin.user:
+      name: ali
+      comment: Ali Nikneshan
+      groups: ssh_users
+      state: present
+      shell: /bin/bash
+
+  - name: Add ali pubkey
+    ansible.posix.authorized_key:
+      user: ali
+      state: present
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEGl001eZqMMoMOVaWYV/JEUJneO83ruE36Q2jp8oh1n ali@backup"
+
+  - name: Add the user 'fateme' 
+    ansible.builtin.user:
+      name: fateme
+      comment: Fateme Tofighi
+      groups: ssh_users
+      state: present
+      shell: /bin/bash
+
+  - name: Add fateme pubkey
+    ansible.posix.authorized_key:
+      user: fateme
+      state: present
+      key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8vqTd3qNBhFQvyWmZVN23ULpA80/mhkxZSn88Cd65a9CHJjEPrkEtBcYWtQ1QVa8h0VfBuOTiPGPQmlL3VNRGYG3GAAEW/C6Xz8W9xZ2pu6lSl5OeahVIW4w1+Pv4kZqMmfejRMUmDTZ6bVks/60d8KeO4i8A4eoI7q7K6uXA4G6aS/5M0CIfW5esLgyADYhAcfaUi6VVNSW8cUq6yxq7CZ6CwrqoAC80Mn4DCTQbVPocTNuHSkit5D3OznQbTAc865MOa3TZ+Qg5R3m/8WkCxqYkB6Qo2IOZpwK+T94C8buOu4zvwloQkvv4T7ZPxEEm54Egz7O6SQmdzcYBC1Fiks+YAeKgR3Rrp8g4XoqjsLDBlOBkBN6P7dhRQOABdJMSCQVlGK0Y7v/VsqVQLnIwDoLalwh3CXs12pdzzeGdmouzQy5iAssGxFRADMV+KsQTcD1smR+dcB40LMzwhMI2AB5AmbkFYRMXEgOSqvcWflVq005HsKyusEZuSeZlgsc= fateme@fateme-System-Product-Name"
+
+  - name: Add the user 'sohrab' 
+    ansible.builtin.user:
+      name: sohrab
+      comment: Sohrab Asadzadeh
+      groups: ssh_users
+      state: present
+      shell: /bin/bash
+
+  - name: Add sohrab pubkey
+    ansible.posix.authorized_key:
+      user: sohrab
+      state: present
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMgpOvhen/ml+X7CTdJI/jFD4/jlLOdn7+G1smTdQqD5 sohrab@sohrab-pc"
+
+  - name: Add app user
+    ansible.builtin.user:
+      name: app
+      comment: Application Runner
+      state: present
+      shell: /bin/bash
+  
+  - name: Copy private_key for App User
+    ansible.builtin.copy:
+      src: app/id_rsa
+      dest: /home/app/.ssh/id_rsa
+      owner: app
+      group: app
+      mode: '0600'
+
+  - name: Add ali sudoers.d/ali
+    ansible.builtin.lineinfile:
+      path: /etc/sudoers.d/ali
+      line: "ali		ALL=(ALL:ALL) NOPASSWD:ALL"
+      owner: root
+      mode: 0644
+      state: present
+      create: yes
+  
+  - name: Add sohrab sudoers.d/app
+    ansible.builtin.lineinfile:
+      path: /etc/sudoers.d/app
+      line: "sohrab ALL=(ALL) NOPASSWD:/usr/bin/su - app"
+      owner: root
+      mode: 0644
+      state: present
+      create: yes
+
+  - name: Add fateme sudoers.d/app
+    ansible.builtin.lineinfile:
+      path: /etc/sudoers.d/app
+      line: "fateme ALL=(ALL) NOPASSWD:/usr/bin/su - app"
+      owner: root
+      mode: 0644
+      state: present
+      create: yes
+  
