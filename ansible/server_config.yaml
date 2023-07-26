@@ -6,7 +6,12 @@
     ansible.builtin.group:
       name: ssh_users
       state: present
-
+  - name: add ali to ssh_users
+    ansible.builtin.user:
+      name: ali
+      groups: ssh_users
+      state: present
+      
   - name: Copy ssh user
     copy:
       src: app/sshd_config.j2
