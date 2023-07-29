@@ -1,0 +1,61 @@
+  - name: Add the user' 
+    ansible.builtin.user:
+      name: "{{users[item].name}}"
+      comment: "{{users[item].full_name}}"
+      groups: ssh_users
+      state: "{{users[item].state}}"
+      shell: /bin/bash
+    with_items: "{{users.keys()|list}}"
+    when: '"dev" in users[item].roles'
+  - name: ensure .ssh exist for user' 
+    file: 
+      path: "/home/{{users[item].name}}/.ssh"
+      state: directory
+      owner: "{{users[item].name}}"
+      mode: 0700
+    with_items: "{{users.keys()|list}}"
+    when: '"dev" in users[item].roles and users[item].state=="present"'
+
+  - name: "Add user pubkey"
+    ansible.posix.authorized_key:
+      user: "{{users[item].name}}"
+      state: present
+      key: "{{users[item].key}}"
+    with_items: "{{users.keys()|list}}"
+    when: '"dev" in users[item].roles and users[item].state=="present"'
+  
+  - name: "Add user sudoers.d/app"
+    ansible.builtin.lineinfile:
+      path: /etc/sudoers.d/app
+      line: "{{users[item].name}} ALL=(ALL) NOPASSWD:/usr/bin/su - app"
+      owner: root
+      mode: 0644
+      state: present
+      create: yes
+    with_items: "{{users.keys()|list}}"
+    when: '"dev" in users[item].roles and users[item].state=="present"'
+  - name: Add app user
+    ansible.builtin.user:
+      name: app
+      comment: "Application User"
+      state: "present"
+      shell: /bin/bash
+
+  - name: ensure .ssh exist for user app 
+    file: 
+      path: "/home/app/.ssh"
+      state: directory
+      owner: "app"
+      mode: 0700
+  - name: copy private key for user app
+    copy:
+      src: app/id_rsa
+      dest: "/home/app/.ssh"
+      owner: app
+      mode: 0600
+  - name: update home access of app
+    file:
+      mode: 641
+      path: /home/app
+      state: directory
+      

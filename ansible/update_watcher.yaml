@@ -1,0 +1,15 @@
+- hosts: full_nodes
+  become: true
+  become_user: app
+  # strategy: free
+  tasks:
+  - name: update watcher repo
+    ansible.builtin.git:
+      repo: ssh://git@git.maxpool.ir:7999/bc/watcher.git
+      dest: /home/app/watcher
+      single_branch: true
+      update: true
+      version: master
+  - name: build new image
+    ansible.builtin.shell:
+      cmd: 'docker compose -f /home/app/watcher/docker-compose.yml up --build -d '

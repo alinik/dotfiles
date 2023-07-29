@@ -1,0 +1,8 @@
+
+  - name: Add all key to tunnel
+    ansible.posix.authorized_key: 
+      user: tunnel
+      state: "{{users[item].state }}"
+      key: "{{ users[item].key }}"
+    with_items: "{{users.keys()|list}}"
+      
