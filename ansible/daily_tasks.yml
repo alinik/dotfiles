@@ -16,4 +16,6 @@
     changed_when: False
     tags:
       - cleanup 
-
+  - name: clean app docker log
+    ansible.builtin.command: find /home/app/.local/share/docker/containers/ -name '*-json.log' -exec truncate -s 0 {} \; 
+    ignore_errors: true
