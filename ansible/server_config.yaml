@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: all:!offlines
   become: true
   strategy: free
   tasks:
@@ -11,12 +11,13 @@
       name: ali
       groups: ssh_users
       state: present
-      
+
   - name: Copy ssh user
-    copy:
+    ansible.builtin.copy:
       src: app/sshd_config.j2
       dest: /etc/ssh/sshd_config
-  
+      mode: "0641"
+
   - name: restart ssh
     ansible.builtin.service:
       name: ssh
@@ -31,3 +32,17 @@
       - zsh
       - git
       - prometheus-node-exporter
+      - acl
+  - name: copy osquery to server
+    ansible.builtin.copy:
+      src: debs/
+      dest: /tmp/debs
+      mode: 0700
+    tags: this
+  - name: install osquery
+    ansible.builtin.apt:
+      deb: "/tmp/debs/{{ item }}.deb"
+    with_items:
+      - osquery
+      - splunkforwarder
+    tags: this

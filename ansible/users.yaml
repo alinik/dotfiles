@@ -1,16 +1,16 @@
 - hosts: all
   become: true
-  # strategy: free
+  strategy: free
   tasks:
   - name: include users
-    include_vars:
-      file: user_inv.yaml 
+    ansible.builtin.include_vars:
+      file: user_inv.yaml
   - name: create ssh_users group
     ansible.builtin.group:
       name: ssh_users
       state: present
 
-  - name: Add the user 'ali' 
+  - name: Add the user 'ali'
     ansible.builtin.user:
       name: ali
       comment: Ali Nikneshan
@@ -19,7 +19,7 @@
       shell: /bin/zsh
 
   - name: ensure .ssh exist for ali
-    file: 
+    ansible.builtin.file:
       path: /home/ali/.ssh
       state: directory
       owner: ali
@@ -37,12 +37,12 @@
       owner: root
       mode: 0644
       state: present
-      create: yes
+      create: true
 
   - name: add full_node users
     ansible.builtin.include_tasks: "fullnode_users.yaml"
     when: "'full_nodes' in group_names"
-  
+
   - name: add users to tunnel
     ansible.builtin.include_tasks: "tunnel.yaml"
     when: "'tunnels' in group_names"
