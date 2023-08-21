@@ -19,6 +19,7 @@ colored-man-pages
 kubectl
 podman
 vault
+crowdsec
 )
 [ -e $HOME/.ssh/id_rsa -o -e  $HOME/.ssh/id_ed25519 -o -e $HOME/.ssh/id_ecdsa ] && plugins=(${plugins} ssh-agent)
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
