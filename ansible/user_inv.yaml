@@ -16,5 +16,5 @@ users:
     name: "fateme"
     key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCk8ES0wGRsTQ8jLYy9DJUFicIhU67r61k4YDpn+9nvJQUfMCQhOaQ5STaIDW3RI0qm6s8uaS88lcASeJQaxrXxk5NF1ycCiht5LJY/Lpl9yWCmqHW4VNz+O6+/aUhUWoLVk8pUdniMrHmPN21pZh/1ianSpl0pWcdCiM50olO32IYTGICL6WQmyHwQmBcggLIEKPgeS48PwXHGfuGf+NZs4GPrh8GMLoNxud6Pri+mPj4sckdlVZVm4e6bF7iNUNTLI/xmQVEtifT2UxilEFzdQLoIRKJkmoXGO0C6F+APB6dto+tQUROT6+oq3ht9yGmRIQ8Bw37Y3Y2L2D/yEw8F1Da54+ZGJhxViZEuZTaiGbX/fUQ4VZMcmMLIWxzUOdcQLjkxA3WD1IeAu54x1QYVHHFQWk4WI815u0h3Upxqh47nlaN9fzpTHVDz1xAOGSc8mVG2xPoF3jV1BH+PjtBMHfuiZxUbdx2tqGkAZiKCL4o3ZNMOf8omrscu/rZVgUM= fateme@fateme-System-Product-Name"
     full_name: "Fateme Tofighi"
-    state: "present"
+    state: "absent"
     roles: ["dev"]

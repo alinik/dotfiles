@@ -18,12 +18,12 @@
       groups: ssh_users
       state: present
       append: true
-  - name: add bitmax to ssh_users
-    ansible.builtin.user:
-      name: bitmax
-      groups: ssh_users
-      state: present
-      append: true
+  # - name: add bitmax to ssh_users
+  #   ansible.builtin.user:
+  #     name: bitmax
+  #     groups: ssh_users
+  #     state: present
+  #     append: true
   - name: Copy ssh user
     ansible.builtin.copy:
       src: app/sshd_config.j2

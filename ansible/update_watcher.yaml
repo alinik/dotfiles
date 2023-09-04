@@ -1,15 +1,19 @@
-- hosts: full_nodes
+- name: Update Wathers
+  hosts: full_nodes:!offlines
   become: true
   become_user: app
   # strategy: free
   tasks:
-  - name: update watcher repo
-    ansible.builtin.git:
-      repo: ssh://git@git.maxpool.ir:7999/bc/watcher.git
-      dest: /home/app/watcher
-      single_branch: true
-      update: true
-      version: master
-  - name: build new image
-    ansible.builtin.shell:
-      cmd: 'docker compose -f /home/app/watcher/docker-compose.yml up --build -d '
+    - name: Update watcher repo
+      ansible.builtin.git:
+        repo: ssh://git@git.maxpool.ir:7999/bc/watcher.git
+        dest: /home/app/watcher
+        single_branch: true
+        update: true
+        version: master
+    - name: Build new image
+      ansible.builtin.command:
+        cmd: 'docker compose -f /home/app/watcher/docker-compose.yml build'
+    - name: Restart watcher
+      ansible.builtin.command:
+        cmd: 'docker compose -f /home/app/watcher/docker-compose.yml restart'

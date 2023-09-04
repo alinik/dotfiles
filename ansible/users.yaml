@@ -1,48 +1,49 @@
-- hosts: all
+- name: Setup users
+  hosts: all
   become: true
   strategy: free
   tasks:
-  - name: include users
-    ansible.builtin.include_vars:
-      file: user_inv.yaml
-  - name: create ssh_users group
-    ansible.builtin.group:
-      name: ssh_users
-      state: present
+    - name: Include users
+      ansible.builtin.include_vars:
+        file: user_inv.yaml
+    - name: Create ssh_users group
+      ansible.builtin.group:
+        name: ssh_users
+        state: present
 
-  - name: Add the user 'ali'
-    ansible.builtin.user:
-      name: ali
-      comment: Ali Nikneshan
-      groups: ssh_users
-      state: present
-      shell: /bin/zsh
+    - name: Add the user 'ali'
+      ansible.builtin.user:
+        name: ali
+        comment: Ali Nikneshan
+        groups: ssh_users
+        state: present
+        shell: /bin/zsh
 
-  - name: ensure .ssh exist for ali
-    ansible.builtin.file:
-      path: /home/ali/.ssh
-      state: directory
-      owner: ali
-      mode: 0700
-  - name: Add ali pubkey
-    ansible.posix.authorized_key:
-      user: ali
-      state: present
-      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEGl001eZqMMoMOVaWYV/JEUJneO83ruE36Q2jp8oh1n ali@backup"
+    - name: Ensure .ssh exist for ali
+      ansible.builtin.file:
+        path: /home/ali/.ssh
+        state: directory
+        owner: ali
+        mode: "0700"
+    - name: Add ali pubkey
+      ansible.posix.authorized_key:
+        user: ali
+        state: present
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEGl001eZqMMoMOVaWYV/JEUJneO83ruE36Q2jp8oh1n ali@backup"
 
-  - name: Add ali sudoers.d/ali
-    ansible.builtin.lineinfile:
-      path: /etc/sudoers.d/ali
-      line: "ali		ALL=(ALL:ALL) NOPASSWD:ALL"
-      owner: root
-      mode: 0644
-      state: present
-      create: true
+    - name: Add ali sudoers.d/ali
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/ali
+        line: "ali		ALL=(ALL:ALL) NOPASSWD:ALL"
+        owner: root
+        mode: "0644"
+        state: present
+        create: true
 
-  - name: add full_node users
-    ansible.builtin.include_tasks: "fullnode_users.yaml"
-    when: "'full_nodes' in group_names"
+    - name: Add full_node users
+      ansible.builtin.include_tasks: "fullnode_users.yaml"
+      when: "'full_nodes' in group_names"
 
-  - name: add users to tunnel
-    ansible.builtin.include_tasks: "tunnel.yaml"
-    when: "'tunnels' in group_names"
+    - name: Add users to tunnel
+      ansible.builtin.include_tasks: "tunnel.yaml"
+      when: "'tunnels' in group_names"
