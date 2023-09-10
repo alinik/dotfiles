@@ -1,4 +1,0 @@
-#!/bin/bash
-which vault || (echo vault client not installed && exit 1)
-vault write  -field=signed_key ssh-client-signer/sign/my-role valid_principals=$2 ttl=30d public_key=@$1.pub > $1-cert.pub
-ssh-keygen -L -f $1-cert.pub
