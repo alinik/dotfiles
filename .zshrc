@@ -14,7 +14,7 @@ fast-syntax-highlighting
 zsh-autosuggestions
 alias-tips
 colored-man-pages
-kubectl
+kubectl kubectx
 vault
 crowdsec
 )

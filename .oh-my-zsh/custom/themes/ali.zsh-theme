@@ -12,7 +12,7 @@ PROMPT='%{%(#~$fg_bold[red]~$fg_bold[magenta])%}$(_fishy_collapsed_wd)%{$reset_c
 PROMPT2='%{$fg[red]%}\ %{$reset_color%}'
 
 local return_status="%{$fg_bold[red]%}%(?..%?)%{$reset_color%}"
-RPROMPT='${return_status}%{$fg_bold[green]%}%n%{$reset_color%}@%{$fg_bold[blue]%}%m%{$reset_color%}%{$fg_bold[yellow]%}${VIRTUAL_ENV:t}%{$reset_color%}$(hg_prompt_info)$(git_prompt_info)$(git_prompt_status)%{$reset_color%}'
+RPROMPT='${return_status}%{$fg_bold[green]%}%n%{$reset_color%}@%{$fg_bold[blue]%}%m%{$reset_color%}%{$fg_bold[yellow]%}[$(kubectx_prompt_info)]${VIRTUAL_ENV:t}%{$reset_color%}$(hg_prompt_info)$(git_prompt_info)$(git_prompt_status)%{$reset_color%}'
 
 ZSH_THEME_GIT_PROMPT_PREFIX=" "
 ZSH_THEME_GIT_PROMPT_SUFFIX=""
