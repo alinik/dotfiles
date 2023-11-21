@@ -7,16 +7,18 @@ plugins=(
 docker docker-compose
 postgres 
 git
-pip python virtualenv 
+pip python virtualenv celery
 systemd 
 ubuntu common-aliases sudo ali-aliases
 fast-syntax-highlighting
 zsh-autosuggestions
-alias-tips
+#alias-tips
 colored-man-pages
 kubectl kubectx
 vault
 crowdsec
+cp z colorize copyfile encode64 globalias history
+percol
 )
 [ -e $HOME/.ssh/id_rsa -o -e  $HOME/.ssh/id_ed25519 -o -e $HOME/.ssh/id_ecdsa ] && plugins=(${plugins} ssh-agent)
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
