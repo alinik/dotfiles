@@ -16,16 +16,17 @@ zsh-autosuggestions
 colored-man-pages
 kubectl kubectx
 vault
+ssh-agent
 crowdsec
 cp z colorize copyfile encode64 globalias history
 percol
 )
-[ -e $HOME/.ssh/id_rsa -o -e  $HOME/.ssh/id_ed25519 -o -e $HOME/.ssh/id_ecdsa ] && plugins=(${plugins} ssh-agent)
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
 source $ZSH/oh-my-zsh.sh
 unalias rm
 #export PATH="$PATH:`yarn global bin`"
 export VAULT_ADDR="https://keys.mybitmax.com"
 
+___MY_VMOPTIONS_SHELL_FILE="${HOME}/.jetbrains.vmoptions.sh"; if [ -f "${___MY_VMOPTIONS_SHELL_FILE}" ]; then . "${___MY_VMOPTIONS_SHELL_FILE}"; fi
 
 
