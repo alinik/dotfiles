@@ -18,8 +18,9 @@ kubectl kubectx
 vault
 ssh-agent
 crowdsec
-cp z colorize copyfile encode64  history
-percol pylint
+z 
+#cp z colorize copyfile encode64  history
+#percol pylint
 )
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
 source $ZSH/oh-my-zsh.sh
