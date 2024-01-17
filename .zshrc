@@ -12,7 +12,8 @@ systemd
 ubuntu common-aliases sudo ali-aliases
 fast-syntax-highlighting
 zsh-autosuggestions
-globalias #alias-tips
+#globalias 
+alias-tips
 colored-man-pages
 kubectl kubectx
 vault
@@ -28,6 +29,6 @@ unalias rm
 #export PATH="$PATH:`yarn global bin`"
 export VAULT_ADDR="https://keys.mybitmax.com"
 
+
+
 ___MY_VMOPTIONS_SHELL_FILE="${HOME}/.jetbrains.vmoptions.sh"; if [ -f "${___MY_VMOPTIONS_SHELL_FILE}" ]; then . "${___MY_VMOPTIONS_SHELL_FILE}"; fi
-
-
