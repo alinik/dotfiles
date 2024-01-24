@@ -12,8 +12,8 @@ systemd
 ubuntu common-aliases sudo ali-aliases
 fast-syntax-highlighting
 zsh-autosuggestions
-#globalias 
-alias-tips
+globalias 
+#alias-tips
 colored-man-pages
 kubectl kubectx
 vault
