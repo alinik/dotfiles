@@ -8,6 +8,7 @@ alias tailf='tail -f'
 alias csf='sudo csf'
 alias krr='kubectl rollout restart deployment '
 alias kdele='for i in `kubectl get pods |awk "/Error/ {print $1}"`;do kubectl delete pods $i;done'
+export GLOBALIAS_FILTER_VALUES="$GLOBALIAS_FILTER_VALUES krr glola gp gl gco gcam gss gd fps dm config cmdb noc G L z agud" 
 if [ `id -u` -ne 0 ]; then
     for cmd in apt iptables ip ss smem dpkg apt-get snap systemctl chown ntpdate ;
         do
