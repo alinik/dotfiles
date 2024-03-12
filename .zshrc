@@ -20,6 +20,7 @@ vault
 ssh-agent
 crowdsec
 z 
+vscode
 #cp colorize copyfile encode64  history
 #percol pylint
  fzf fzf-tab)
