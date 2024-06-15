@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Check if the namespace is provided as an input
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <namespace>"
+    kubectl get namespace --no-headers -o custom-columns=":metadata.name"
+    exit 1
+fi
+
+# Capture the namespace from the command line argument
+namespace=$1
+
+# Get all deployments in the specified namespace
+deployments=$(kubectl get deployments -n $namespace --no-headers -o custom-columns=":metadata.name")
+
+# Check if there are any deployments
+if [ -z "$deployments" ]; then
+    echo "No deployments found in namespace $namespace."
+    exit 2
+fi
+
+# Loop through each deployment and restart
+for deployment in $deployments; do
+    echo "Restarting deployment $deployment in namespace $namespace..."
+    kubectl rollout restart deployment/$deployment -n $namespace
+done
+
+echo "All deployments in namespace $namespace have been restarted."

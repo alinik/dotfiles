@@ -15,7 +15,7 @@ zsh-autosuggestions
 globalias 
 #alias-tips
 colored-man-pages
-kubectl kubectx
+kubectl kubectx kubetail
 vault
 ssh-agent
 crowdsec
