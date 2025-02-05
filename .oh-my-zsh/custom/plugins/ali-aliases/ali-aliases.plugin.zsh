@@ -9,6 +9,7 @@ alias csf='sudo csf'
 alias krrd='kubectl rollout restart deployment '
 alias krrf='kubectl rollout restart -f '
 #alias kdele='for i in `kubectl get pods |awk "/Error/ {print $1}"`;do kubectl delete pods $i;done'
+alias -g GG='| grep -Ev "status|metric|Successfully"'
 alias dive='docker run -ti --rm  -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive'
 export GLOBALIAS_FILTER_VALUES="$GLOBALIAS_FILTER_VALUES krr glola gp gl gco gcam gss gd fps dm config cmdb noc G L z agud dive"
 if [ `id -u` -ne 0 ]; then

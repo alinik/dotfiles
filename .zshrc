@@ -26,6 +26,8 @@ vscode
  fzf fzf-tab )
 [ "`uname`" = "Linux" ] && plugins=($plugins ubuntu) || plugins=($plugins brew)
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
+
+[ -f ~/.zshrc_local ] && source ~/.zshrc_local
 source $ZSH/oh-my-zsh.sh
 unalias rm
 #export PATH="$PATH:`yarn global bin`"
@@ -45,5 +47,4 @@ export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
 ___MY_VMOPTIONS_SHELL_FILE="${HOME}/.jetbrains.vmoptions.sh"; if [ -f "${___MY_VMOPTIONS_SHELL_FILE}" ]; then . "${___MY_VMOPTIONS_SHELL_FILE}"; fi
-[ -f ~/.zshrc_local ] && source ~/.zshrc_local
 
