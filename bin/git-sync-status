@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+# Git plugin to show which repos under the current directory have:
+#  - dirty working dirs, or
+#  - a stage branch ahead/behind master.
+# Usage: git sync-status [--merge]
+
+AUTO_MERGE=false
+if [[ "$1" == "--merge" ]]; then
+  AUTO_MERGE=true
+fi
+
+# Ensure fd is installed
+if ! command -v fd &>/dev/null; then
+  echo "Error: 'fd' (fd-find) is required but not installed." >&2
+  exit 1
+fi
+
+# Search for .git folders
+fd -t d -u -a .git$ . | while read -r gitdir; do
+  repo_dir=$(dirname "$gitdir")
+  cd "$repo_dir" || continue
+
+  # Only consider repos with both master and stage
+  if git show-ref --quiet refs/heads/master && git show-ref --quiet refs/heads/stage; then
+    # Fetch remote updates quietly
+    git fetch --all --quiet
+
+    # Get current branch and cleanliness
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    if [[ -n $(git status --porcelain) ]]; then
+      dirty=true
+    else
+      dirty=false
+      git pull -q
+    fi
+
+    # Compute ahead/behind counts
+    ahead=$(git rev-list --count master..stage)
+    behind=$(git rev-list --count stage..master)
+
+    # Print only if dirty or out-of-sync
+    if [[ "$dirty" == "true" || $ahead -gt 0 || $behind -gt 0 ]]; then
+      echo "Repo: $repo_dir"
+      echo "  Branch: $current_branch ($( [[ "$dirty" == "true" ]] && echo "dirty" || echo "clean" ))"
+      echo -e "  stage is \033[1;33m$ahead\033[0m ahead, \033[1;31m$behind\033[0m behind master"
+      echo
+
+      if $AUTO_MERGE; then
+        echo "  ➜ Merging master into stage..."
+        git checkout stage --quiet
+        git merge master --no-edit
+        if [ $? -ne 0 ]; then
+          echo -e "  \033[1;31mMerge conflict in $repo_dir\033[0m"
+        else
+          git push origin stage --quiet
+          echo "  ✔ Merged and pushed to origin/stage"
+        fi
+        # Return to original branch
+        git checkout "$current_branch" --quiet
+        echo
+      fi
+    fi
+  fi
+done

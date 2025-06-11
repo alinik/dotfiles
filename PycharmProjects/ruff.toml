@@ -1,0 +1,53 @@
+line-length = 120
+target-version = "py311"
+preview = true
+[lint]
+select = ["ALL"]
+#select = ["E",   "F", "UP", "B", "SIM", "I", "Q","FIX","ARG",
+#    "COM","PLR","N", "FBT", "TRY", "PYI", "C4",
+#    ,"ANN"
+#]
+
+ignore = [
+    "RUF100", # Unused ruff configuration file
+    "ANN", # annotations
+    "FBT002",
+    "ARG001", # unused-argument
+    "ARG002", # Unused method argument
+    "G004", # Logging statement uses f-string
+    "D", # "D100",  # missing-docstring
+    "DOC", # docstrings
+    "CPY001",
+    "COM812", # missing-trailing-comma
+    "TRY400", # Use `logging.exception` instead of `logging.error`
+    "PLR0913", # too-many-arguments
+    "PLR0917", # too-many-positional-arguments
+    "EM101", # Exception must not use a string literal, assign to variable first
+    "TD003", # missing-todo-link
+    "PLC0414", # useless-import-alias
+    "TRY003", # raise-vanilla-args
+    "DTZ", # datetime-timezone
+    "TRY300", # try-consider-else
+    "N814", # camelcase-imported-as-constant
+    "FBT001", # boolean-type-hint-positional-argument
+
+    # TO Reenable these when we have a good reason to use them
+    "C901", # complex-structure
+    "FIX002", # line-contains-todo
+    "PLR2004", # magic-value-comparison
+    "PLR0912", # too-many-branches
+    "PLR0914", # too-many-locals
+]
+
+[lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.params.Depends", "fastapi.Query", "fastapi.params.Query"]
+
+[lint.pep8-naming]
+classmethod-decorators = ["classmethod","validator", "field_validator", "root_validator"]
+
+[lint.per-file-ignores]
+"models/*.py" = ["PLC1901"]
+
+[lint.flake8-tidy-imports]
+# Disallow all relative imports.
+ban-relative-imports = "all"
