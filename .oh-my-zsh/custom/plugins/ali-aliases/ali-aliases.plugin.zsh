@@ -11,6 +11,9 @@ alias krrf='kubectl rollout restart -f '
 #alias kdele='for i in `kubectl get pods |awk "/Error/ {print $1}"`;do kubectl delete pods $i;done'
 alias -g GG='| grep -Ev "status|metric|Successfully"'
 alias dive='docker run -ti --rm  -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive'
+alias blockchain='kubectl config use-context blockchain@prod'
+alias prod='kubectl config use-context exchange@prod'
+alias stage='kubectl config use-context exchange@stage'
 export GLOBALIAS_FILTER_VALUES="$GLOBALIAS_FILTER_VALUES krr glola gp gl gco gcam gss gd fps dm config cmdb noc G L z agud dive"
 if [ `id -u` -ne 0 ]; then
     for cmd in apt iptables ip ss smem dpkg apt-get snap systemctl chown ntpdate ;
@@ -21,9 +24,9 @@ fi
 function nocc(){
 	pygmentize -g $1|grep -Ev '^\s*.{0,5}#|^$'
 }
-function kdele(){
-    errors=$(kubectl get pods |awk '/Error/ {print $1}')
-    for pod in $errors;do
-        kubectl delete pods $i
-    done
+kdele() {
+  kubectl get pods --all-namespaces | awk '/Comp|Error|Pending|Cras/ {print $1, $2}' | while read namespace pod; do
+    echo -n "$namespace: "
+    kubectl delete pod "$pod" -n "$namespace" 
+  done
 }

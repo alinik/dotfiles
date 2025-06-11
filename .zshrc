@@ -23,6 +23,8 @@ z
 vscode
 #cp colorize copyfile encode64  history
 #percol pylint
+klog-deploy
+ruff
  fzf fzf-tab )
 [ "`uname`" = "Linux" ] && plugins=($plugins ubuntu) || plugins=($plugins brew)
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
@@ -46,5 +48,16 @@ export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
+
 ___MY_VMOPTIONS_SHELL_FILE="${HOME}/.jetbrains.vmoptions.sh"; if [ -f "${___MY_VMOPTIONS_SHELL_FILE}" ]; then . "${___MY_VMOPTIONS_SHELL_FILE}"; fi
 
+# pnpm
+export PNPM_HOME="/Users/ali/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+# Created by `userpath` on 2025-05-20 05:03:21
+export PATH="$PATH:/Users/ali/Library/Application Support/hatch/pythons/3.13/python/bin"
