@@ -15,7 +15,7 @@ zsh-autosuggestions
 globalias 
 #alias-tips
 colored-man-pages
-kubectl kubectx kubetail
+kubectl kubectx
 vault
 ssh-agent
 crowdsec
@@ -25,6 +25,9 @@ vscode
 #percol pylint
 klog-deploy
 ruff
+kubetail
+nvm
+iterm2
  fzf fzf-tab )
 [ "`uname`" = "Linux" ] && plugins=($plugins ubuntu) || plugins=($plugins brew)
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
@@ -36,28 +39,9 @@ unalias rm
 export VAULT_ADDR="https://keys.mybitmax.com"
 #export FZF_DEFAULT_OPTS="--no-mouse --height 50% --reverse --multi --inline-info  --preview='[[ \$(file --mime-type {}) =~ binary ]] && echo {} is a binary file || (batcat --color=always {}||less -S {}) 2> /dev/null|head -300' --preview-window='right:hidden:wrap' --bind='f3:execute(batcat {}|less -S {} ),f2:toggle-preview,ctrl-d:half-page-down,ctrl-u:half-page-up,ctrl-y:execute-silent(echo {+}|xclip)'" 
 
-
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completio
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
-
-export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
-
-test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
-
-
-___MY_VMOPTIONS_SHELL_FILE="${HOME}/.jetbrains.vmoptions.sh"; if [ -f "${___MY_VMOPTIONS_SHELL_FILE}" ]; then . "${___MY_VMOPTIONS_SHELL_FILE}"; fi
-
-# pnpm
-export PNPM_HOME="/Users/ali/Library/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
-
 # Created by `userpath` on 2025-05-20 05:03:21
 export PATH="$PATH:/Users/ali/Library/Application Support/hatch/pythons/3.13/python/bin"
+___MY_VMOPTIONS_SHELL_FILE="${HOME}/.jetbrains.vmoptions.sh"; if [ -f "${___MY_VMOPTIONS_SHELL_FILE}" ]; then . "${___MY_VMOPTIONS_SHELL_FILE}"; fi
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /opt/homebrew/bin/vault vault
