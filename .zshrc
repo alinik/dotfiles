@@ -32,6 +32,7 @@ iterm2
 [ "`uname`" = "Linux" ] && plugins=($plugins ubuntu) || plugins=($plugins brew)
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
 zstyle :omz:plugins:iterm2 shell-integration yes
+source "$ZSH/plugins/iterm2/iterm2_shell_integration.zsh"
 [ -f ~/.zshrc_local ] && source ~/.zshrc_local
 source $ZSH/oh-my-zsh.sh
 unalias rm
