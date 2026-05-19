@@ -12,6 +12,7 @@ ignore = [
     "RUF100", # Unused ruff configuration file
     "ANN", # annotations
     "FBT002",
+    "FBT003", # Boolean positional value in function calls (internal use)
     "ARG001", # unused-argument
     "ARG002", # Unused method argument
     "G004", # Logging statement uses f-string
@@ -30,6 +31,7 @@ ignore = [
     "TRY300", # try-consider-else
     "N814", # camelcase-imported-as-constant
     "FBT001", # boolean-type-hint-positional-argument
+#    "BLE001", # Do not catch blind exception (often intentional for fallbacks)
 
     # TO Reenable these when we have a good reason to use them
     "C901", # complex-structure
@@ -47,6 +49,28 @@ classmethod-decorators = ["classmethod","validator", "field_validator", "root_va
 
 [lint.per-file-ignores]
 "models/*.py" = ["PLC1901"]
+"tests/**/*.py" = [
+    "S101",     # Use of assert detected (standard in pytest)
+    "PLR6301",  # Method could be a function (pytest test methods)
+    "SLF001",   # Private member accessed (test setup)
+    "PLC0415",  # Import at top-level (needed for mocking)
+    "ARG005",   # Unused lambda argument (in mocking)
+    "I001",     # Unused import (often imported for test setup)
+    "F401",     # Unused import (often imported for test setup)
+    "E402",     # Module level import not at top of file (alembic generated)
+    "PT006",    # Use of f-string in logging function (alembic generated)
+    "RUF001",   # Ambiguous unicode character (intentional Persian/Arabic strings)
+]
+"migrations/**/*.py" = [
+    "INP001",   # Implicit namespace package (migrations don't need __init__.py)
+    "ERA001",   # Commented-out code (often useful in migrations as examples)
+    "PGH004",   # Use specific rule codes when using noqa (alembic generated)
+    "E402",     # Module level import not at top of file (alembic generated)
+    "E501",     # Line too long (alembic auto-generated code)
+    "W291",     # Trailing whitespace (alembic generated)
+    "F405",     # Name may be undefined, or defined from star imports (alembic generated)
+    "RUF001",   # Ambiguous unicode character (intentional Persian/Arabic strings)
+]
 
 [lint.flake8-tidy-imports]
 # Disallow all relative imports.

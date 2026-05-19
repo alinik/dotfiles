@@ -9552,5 +9552,5 @@ else
 fi
 
 
-alias rcs='ruff check --statistics --unsafe-fixes'
-alias rf='ruff format'
+alias rcs='ruff check --config=/Users/ali/PycharmProjects/ruff.toml --statistics --unsafe-fixes'
+alias rf='ruff format --config=/Users/ali/PycharmProjects/ruff.toml'

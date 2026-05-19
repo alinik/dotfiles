@@ -1,0 +1,3 @@
+[submodule ".oh-my-zsh/custom/plugins/zsh-paste-gram"]
+	path = .oh-my-zsh/custom/plugins/zsh-paste-gram
+	url = https://github.com/behnambagheri/zsh-paste-gram.git

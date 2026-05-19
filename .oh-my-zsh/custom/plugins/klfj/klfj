@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+    cat <<'EOF'
+Usage:
+  klfj [--no-color] <kubectl logs args...>
+  kubectl logs -f <args...> | klfj
+
+Examples:
+  klfj price-engine-wallex-0
+  klfj --no-color price-engine-wallex-0
+  klfj -n exchange price-engine-wallex-0
+  kubectl logs -f price-engine-wallex-0 | klfj
+EOF
+}
+
+color_output=1
+kubectl_args=()
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --no-color)
+            color_output=0
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            kubectl_args+=("$1")
+            shift
+            ;;
+    esac
+done
+
+if [[ ! -t 1 ]]; then
+    color_output=0
+fi
+
+stream_input() {
+    if [[ ${#kubectl_args[@]} -gt 0 ]]; then
+        kubectl logs -f "${kubectl_args[@]}"
+    elif [[ ! -t 0 ]]; then
+        cat
+    else
+        usage
+        exit 1
+    fi
+}
+
+if [[ $color_output -eq 1 ]]; then
+    jq_program='
+      def dim: "\u001b[2m";
+      def bold: "\u001b[1m";
+      def reset: "\u001b[0m";
+      def green: "\u001b[32m";
+      def blue: "\u001b[34m";
+      def cyan: "\u001b[36m";
+      def magenta: "\u001b[35m";
+      def left_pad($width):
+        if (length >= $width) then .
+        else (" " * ($width - length)) + .
+        end;
+
+      def base_keys: ["timestamp", "level", "logger", "module", "message", "event"];
+
+      def stringify:
+        if type == "string" then .
+        else tojson
+        end;
+
+      def rest:
+        to_entries
+        | map(select((.key | IN(base_keys[])) | not))
+        | map("\(cyan)\(.key)\(reset)=\(magenta)\(.value | stringify)\(reset)")
+        | join(" ");
+
+      def body:
+        if (.message? // "") != "" then .message
+        elif (.event? // "") != "" then .event
+        else ""
+        end;
+
+      . as $raw
+      | (try fromjson catch null) as $line
+      | if $line == null then
+          $raw
+        else
+          $line
+          | body as $body
+          | rest as $rest
+          | if $body == "" and $rest != "" then $rest
+            elif $body != "" and $rest != "" then "\($body) \($rest)"
+            else $body
+            end as $message
+          | "\(dim)\(.timestamp // "-")\(reset) [\(green)\(bold)\((.level // "info") | ascii_downcase | left_pad(9))\(reset)] [\(reset)\(bold)\(blue)\(.logger // .module // "-")\(reset)] \(bold)\($message)\(reset)"
+        end
+    '
+else
+    jq_program='
+  def base_keys: ["timestamp", "level", "logger", "module", "message", "event"];
+
+  def stringify:
+    if type == "string" then .
+    else tojson
+    end;
+
+  def rest:
+    to_entries
+    | map(select((.key | IN(base_keys[])) | not))
+    | map("\(.key)=\(.value | stringify)")
+    | join(" ");
+
+  def body:
+    if (.message? // "") != "" then .message
+    elif (.event? // "") != "" then .event
+    else ""
+    end;
+
+  . as $raw
+  | (try fromjson catch null) as $line
+  | if $line == null then
+      $raw
+    else
+      $line
+      | body as $body
+      | rest as $rest
+      | if $body == "" and $rest != "" then $rest
+        elif $body != "" and $rest != "" then "\($body) \($rest)"
+        else $body
+        end as $message
+      | "[\(.timestamp // "-")] [\((.level // "info") | ascii_upcase)] [\(.logger // .module // "-")] [\($message)]"
+    end
+'
+fi
+
+stream_input | jq -Rr "$jq_program"

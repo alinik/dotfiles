@@ -1,19 +1,22 @@
 alias noc='grep -vE "^\s*[#;]|^\s*$"'
 alias fps='ps -ef|grep -v grep|grep'
 alias catc='pygmentize -g'
-alias dm='du -sxm *|sort -nr|head'
+alias dm='du -axh . | sort -hr | head -n 30'
 alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 alias cmdb='git --git-dir=/root/.cmdb --work-tree=/' # mkdir /root/.cmdb && cd /root/.cmdb && git init --bare . 
 alias tailf='tail -f'
 alias csf='sudo csf'
 alias krrf='kubectl rollout restart -f '
 alias -g GG='| grep -Ev "status|metric|Successfully"'
-alias dive='docker run -ti --rm  -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive'
+alias -g 'G'="| sed 's/\x1b\[[0-9;]*m//g'|\grep --color"
+#alias dive='docker run -ti --rm  -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive'
 alias blockchain='kubectl config use-context blockchain@prod'
 alias prod='kubectl config use-context exchange@prod'
 alias stage='kubectl config use-context exchange@stage'
-alias mkenv="kubectl get configmaps -o yaml general-secret|yq .data|sed 's/: /=/' > .env"
-
+alias kt=kubetail
+alias bump='git commit --allow-empty -m "bump for rebuild" && git push'
+alias c=claude
+alias o=codex
 export GLOBALIAS_FILTER_VALUES="$GLOBALIAS_FILTER_VALUES krr glola gp gl gco gcam gss gd fps dm config cmdb noc G L z agud dive"
 if [ `id -u` -ne 0 ]; then
     for cmd in apt iptables ip ss smem dpkg apt-get snap systemctl chown ntpdate ;
@@ -24,6 +27,14 @@ fi
 function nocc(){
 	pygmentize -g $1|grep -Ev '^\s*.{0,5}#|^$'
 }
+
+mkenv() {
+  local env_configmap
+  env_configmap="$(basename "$PWD")-env"
+
+  python3 "$HOME/bin/mkenv-configmaps" general-secret "$env_configmap" --output .env
+}
+
 krrd() {
   if [ $# -eq 0 ]; then
     echo "🔍 No deployment specified. Launching fzf to select..."
@@ -49,24 +60,26 @@ kdele() {
 
 dkb() {
   # 1. Preflight: ensure Colima is running
-  if ! colima status >/dev/null 2>&1; then
-    echo "⚠️  Colima is not running. Starting Colima..."
-    colima start
-    # wait until Colima is ready
-        while ! colima status 2>&1| grep -q "colima is running"; do
-      sleep 1
-    done
-    echo "✅ Colima is up."
+  if [ -e /opt/homebrew/bin/colima ]; then
+    if ! colima status >/dev/null 2>&1; then
+      echo "⚠️  Colima is not running. Starting Colima..."
+      colima start
+      # wait until Colima is ready
+          while ! colima status 2>&1| grep -q "colima is running"; do
+        sleep 1
+      done
+      echo "✅ Colima is up."
+    fi
   fi
-
   # 2. Determine current directory name and Git branch
   local image_name=$(basename "$PWD")
   local branch=$(git rev-parse --abbrev-ref HEAD)
 
   # 3. Run Docker build
   docker build . \
-    --platform=linux/amd64/v2 \
+    --platform=linux/amd64 \
     --build-arg BRANCH="$branch" \
+    --build-arg MODULE_NAME=${image_name} \
     -t "reg.maxpool.ir/applications/${image_name}:${branch}" \
     "$@"
 }

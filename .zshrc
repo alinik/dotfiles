@@ -1,5 +1,6 @@
 export ZSH=$HOME/.oh-my-zsh
 export PATH="$HOME/bin:$HOME/.local/bin:/snap/bin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export BASH_MAX_OUTPUT_LENGTH=15000
 autoload -U compinit; compinit
 # ZSH_THEME="af-magic"
 ZSH_THEME="ali"
@@ -16,6 +17,7 @@ globalias
 #alias-tips
 colored-man-pages
 kubectl kubectx
+klfj
 vault
 ssh-agent
 crowdsec
@@ -28,6 +30,10 @@ ruff
 kubetail
 nvm
 iterm2
+helm
+codex
+paste-gram
+sublime
  fzf fzf-tab )
 [ "`uname`" = "Linux" ] && plugins=($plugins ubuntu) || plugins=($plugins brew)
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
@@ -35,6 +41,7 @@ zstyle :omz:plugins:iterm2 shell-integration yes
 source "$ZSH/plugins/iterm2/iterm2_shell_integration.zsh"
 [ -f ~/.zshrc_local ] && source ~/.zshrc_local
 source $ZSH/oh-my-zsh.sh
+
 unalias rm
 #export PATH="$PATH:`yarn global bin`"
 export VAULT_ADDR="https://keys.mybitmax.com"
@@ -42,7 +49,17 @@ export VAULT_ADDR="https://keys.mybitmax.com"
 
 # Created by `userpath` on 2025-05-20 05:03:21
 export PATH="$PATH:/Users/ali/Library/Application Support/hatch/pythons/3.13/python/bin"
-___MY_VMOPTIONS_SHELL_FILE="${HOME}/.jetbrains.vmoptions.sh"; if [ -f "${___MY_VMOPTIONS_SHELL_FILE}" ]; then . "${___MY_VMOPTIONS_SHELL_FILE}"; fi
 
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/vault vault
+
+
+# Added by Antigravity
+export PATH="/Users/ali/.antigravity/antigravity/bin:$PATH"
+
+# bun completions
+[ -s "/Users/ali/.oh-my-zsh/completions/_bun" ] && source "/Users/ali/.oh-my-zsh/completions/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
