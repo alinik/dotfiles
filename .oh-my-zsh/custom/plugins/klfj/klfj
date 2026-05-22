@@ -91,12 +91,14 @@ if [[ $color_output -eq 1 ]]; then
         else
           $line
           | body as $body
-          | rest as $rest
+          | if ($body | test("status|metric"; "i")) or ((.path? // "") | test("/status|/metric"; "i")) then empty else
+          rest as $rest
           | if $body == "" and $rest != "" then $rest
             elif $body != "" and $rest != "" then "\($body) \($rest)"
             else $body
             end as $message
           | "\(dim)\(.timestamp // "-")\(reset) [\(green)\(bold)\((.level // "info") | ascii_downcase | left_pad(9))\(reset)] [\(reset)\(bold)\(blue)\(.logger // .module // "-")\(reset)] \(bold)\($message)\(reset)"
+          end
         end
     '
 else
@@ -127,12 +129,14 @@ else
     else
       $line
       | body as $body
-      | rest as $rest
+      | if ($body | test("status|metric"; "i")) or ((.path? // "") | test("/status|/metric"; "i")) then empty else
+      rest as $rest
       | if $body == "" and $rest != "" then $rest
         elif $body != "" and $rest != "" then "\($body) \($rest)"
         else $body
         end as $message
       | "[\(.timestamp // "-")] [\((.level // "info") | ascii_upcase)] [\(.logger // .module // "-")] [\($message)]"
+      end
     end
 '
 fi

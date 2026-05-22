@@ -34,7 +34,7 @@ helm
 codex
 paste-gram
 sublime
- fzf fzf-tab )
+ fzf fzf-tab cs)
 [ "`uname`" = "Linux" ] && plugins=($plugins ubuntu) || plugins=($plugins brew)
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
 zstyle :omz:plugins:iterm2 shell-integration yes
