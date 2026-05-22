@@ -1,5 +1,10 @@
 Setup:
 
+use:
+```bash
+wget -qO- https://raw.githubusercontent.com/alinik/dotfiles/master/setup.sh | bash
+```
+
 
 ```bash
 wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh
