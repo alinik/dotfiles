@@ -32,9 +32,10 @@ nvm
 iterm2
 helm
 codex
+codex-auth
 paste-gram
 sublime
- fzf fzf-tab cs)
+ fzf fzf-tab)
 [ "`uname`" = "Linux" ] && plugins=($plugins ubuntu) || plugins=($plugins brew)
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
 zstyle :omz:plugins:iterm2 shell-integration yes

@@ -26,9 +26,9 @@ failures=0
 # Find all .git directories and iterate
 # Requires 'fd' (fd-find) or fallback to 'find'
 if command -v fd >/dev/null 2>&1; then
-  repos=$(fd -t d -u -a .git$ .)
+  repos=$(fd -t d -u -a .git$ .|sort)
 else
-  repos=$(find . -type d -name .git)
+  repos=$(find . -type d -name .git|sort)
 fi
 
 while IFS= read -r gitdir; do
