@@ -7,3 +7,5 @@ blackjid/plugin-kubectl
 asim-tahir/docker.fish
 asim-tahir/docker-compose.fish
 behnambagheri/fish-paste-gram
+jorgebucaran/fisher
+franciscolourenco/done

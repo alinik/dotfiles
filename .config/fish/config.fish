@@ -1,5 +1,8 @@
 if status is-interactive
     # Commands to run in interactive sessions can go here
+
+    # fzf.fish: macOS-friendly pure-Ctrl binds (no Alt/Option-as-Meta needed)
+    fzf_configure_bindings --directory=ctrl-g --git_log=ctrl-L --git_status=ctrl-k --history=ctrl-r --processes=ctrl-o --variables=ctrl-v
 end
 
 # --- PATH (ported from .zshrc, priority order preserved: bun > antigravity > ~/bin group) ---
