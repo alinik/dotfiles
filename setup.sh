@@ -45,5 +45,7 @@ if [ ! -f "$HOME/.config/fish/local.fish" ] && [ -f "$HOME/.config/fish/local.fi
     echo "Created ~/.config/fish/local.fish from template — fill in real secrets before using them."
 fi
 
+"$FISH_BIN" -c 'set -U fish_greeting ""'
+
 chsh -s "$FISH_BIN"
 exec "$FISH_BIN"
