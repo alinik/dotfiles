@@ -1,0 +1,6 @@
+abbr -q ipa; or abbr -a -g ipa 'ip -4 -c -br a'
+abbr -q kafe; or abbr -a -g kafe 'for i in (git status -s | awk \'{print $2}\' | grep -iE \'(yml|yaml)$\'); kubectl apply -f $i; end'
+abbr -q ke; or abbr -a -g ke 'kubectl get pods | grep -viE \'runn|comple\''
+abbr -q klfd; or abbr -a -g --set-cursor klfd 'kubectl logs -f deployment/%'
+abbr -q kslog; or abbr -a -g --set-cursor kslog 'watch -n3 kubectl logs --since 10m --tail 5 deployments/%'
+abbr -q wake; or abbr -a -g wake 'caffeinate -dim'

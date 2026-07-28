@@ -9,7 +9,7 @@ elif [ "$(uname)" = "Darwin" ]; then
     brew install fish
 elif [ -f /etc/debian_version ]; then
     sudo apt-get update
-    sudo apt-add-repository -y ppa:fish-shell/release-3
+    sudo apt-add-repository -y ppa:fish-shell/release-4
     sudo apt-get update
     sudo apt-get install -y fish
 else
@@ -23,9 +23,14 @@ FISH_BIN="$(command -v fish)"
 grep -qxF "$FISH_BIN" /etc/shells || echo "$FISH_BIN" | sudo tee -a /etc/shells >/dev/null
 
 # --- bootstrap dotfiles bare repo ---
-git clone --bare https://github.com/alinik/dotfiles.git "$HOME/.dotfiles"
-git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" config --local --add status.showUntrackedFiles no
-git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" reset --hard
+if [ -d "$HOME/.dotfiles" ]; then
+    echo "~/.dotfiles already exists, pulling latest."
+    git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" fetch
+else
+    git clone --bare https://github.com/alinik/dotfiles.git "$HOME/.dotfiles"
+fi
+git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" config --local status.showUntrackedFiles no
+git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" reset --hard @{upstream}
 git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" submodule update --init --recursive
 
 # --- fisher + plugins ---
