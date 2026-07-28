@@ -26,11 +26,13 @@ grep -qxF "$FISH_BIN" /etc/shells || echo "$FISH_BIN" | sudo tee -a /etc/shells 
 if [ -d "$HOME/.dotfiles" ]; then
     echo "~/.dotfiles already exists, pulling latest."
     git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" fetch
+    RESET_REF=FETCH_HEAD
 else
     git clone --bare https://github.com/alinik/dotfiles.git "$HOME/.dotfiles"
+    RESET_REF=HEAD
 fi
 git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" config --local status.showUntrackedFiles no
-git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" reset --hard @{upstream}
+git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" reset --hard "$RESET_REF"
 git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" submodule update --init --recursive
 
 # --- fisher + plugins ---
