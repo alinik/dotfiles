@@ -47,5 +47,7 @@ fi
 
 "$FISH_BIN" -c 'set -U fish_greeting ""'
 
-chsh -s "$FISH_BIN"
+if [ "$SHELL" != "$FISH_BIN" ]; then
+    chsh -s "$FISH_BIN"
+fi
 exec "$FISH_BIN"
