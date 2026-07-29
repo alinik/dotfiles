@@ -74,15 +74,15 @@ for line in text.splitlines():
         entries.append((None, buf))
     buf = ""
 
-def yaml_escape(cmd):
-    return cmd.replace("\\", "\\\\").replace('"', '\\"')
+def fish_escape(cmd):
+    return cmd.replace("\\", "\\\\").replace("\n", "\\n")
 
 with open(fish_path, "a") as f:
     for ts, cmd in entries:
         cmd = cmd.strip()
         if not cmd:
             continue
-        f.write(f'- cmd: "{yaml_escape(cmd)}"\n')
+        f.write(f"- cmd: {fish_escape(cmd)}\n")
         f.write(f"  when: {ts if ts else 0}\n")
 PYEOF
 fi
