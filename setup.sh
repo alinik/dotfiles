@@ -47,6 +47,46 @@ fi
 
 "$FISH_BIN" -c 'set -U fish_greeting ""'
 
+# --- migrate zsh history to fish (one-time) ---
+FISH_HISTORY="$HOME/.local/share/fish/fish_history"
+if [ "$SHELL" != "$FISH_BIN" ] && [ -f "$HOME/.zsh_history" ] && [ ! -s "$FISH_HISTORY" ]; then
+    echo "Migrating zsh history to fish..."
+    mkdir -p "$(dirname "$FISH_HISTORY")"
+    python3 - "$HOME/.zsh_history" "$FISH_HISTORY" <<'PYEOF'
+import re
+import sys
+import pathlib
+
+zsh_path, fish_path = sys.argv[1], sys.argv[2]
+text = pathlib.Path(zsh_path).read_text(errors="ignore")
+
+entries = []
+buf = ""
+for line in text.splitlines():
+    buf = buf + "\n" + line if buf else line
+    if buf.endswith("\\"):
+        buf = buf[:-1]
+        continue
+    m = re.match(r"^: (\d+):(\d+);(.*)$", buf, re.S)
+    if m:
+        entries.append((int(m.group(1)), m.group(3)))
+    elif buf.strip():
+        entries.append((None, buf))
+    buf = ""
+
+def yaml_escape(cmd):
+    return cmd.replace("\\", "\\\\").replace('"', '\\"')
+
+with open(fish_path, "a") as f:
+    for ts, cmd in entries:
+        cmd = cmd.strip()
+        if not cmd:
+            continue
+        f.write(f'- cmd: "{yaml_escape(cmd)}"\n')
+        f.write(f"  when: {ts if ts else 0}\n")
+PYEOF
+fi
+
 if [ "$SHELL" != "$FISH_BIN" ]; then
     chsh -s "$FISH_BIN"
 fi
