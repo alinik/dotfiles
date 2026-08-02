@@ -1,4 +1,9 @@
 function dkb --description 'docker build tagged reg.maxpool.ir/applications/<dir>:<branch>, starting Colima if needed'
+    if not command -v docker >/dev/null 2>&1
+        echo "dkb: docker not found in PATH." >&2
+        return 127
+    end
+
     if test -e /opt/homebrew/bin/colima
         if not colima status >/dev/null 2>&1
             echo "⚠️  Colima is not running. Starting Colima..."

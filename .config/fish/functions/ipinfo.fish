@@ -1,4 +1,13 @@
 function ipinfo
+    if not command -v jq >/dev/null 2>&1
+        echo "ipinfo: jq not found in PATH." >&2
+        return 127
+    end
+    if not command -v dig >/dev/null 2>&1
+        echo "ipinfo: dig not found in PATH (install dnsutils/bind-utils)." >&2
+        return 127
+    end
+
     if test (count $argv) -eq 0
         # Fetch data from both APIs
         set data1 (curl -s -H 'Accept: application/json' "ip.behnam.pro")

@@ -1,4 +1,9 @@
 function krrl
+    if not command -v kubectl >/dev/null 2>&1
+        echo "krrl: kubectl not found in PATH." >&2
+        return 127
+    end
+
     set -l args $argv
     set -l namespace
     set -l context

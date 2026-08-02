@@ -38,6 +38,13 @@ else
     ln -sf "$HOME/.local/share/diff-so-fancy/diff-so-fancy" "$HOME/bin/diff-so-fancy"
 fi
 
+# --- install lsd, jq (used by l/approve_pr/ipinfo fish functions) ---
+if [ "$(uname)" = "Darwin" ]; then
+    command -v brew >/dev/null 2>&1 && brew install lsd jq
+elif [ -f /etc/debian_version ]; then
+    sudo apt-get install -y lsd jq
+fi
+
 # --- bootstrap dotfiles bare repo ---
 if [ -d "$HOME/.dotfiles" ]; then
     echo "~/.dotfiles already exists, pulling latest."
