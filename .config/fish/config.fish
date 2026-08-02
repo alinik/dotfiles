@@ -4,10 +4,6 @@ if status is-interactive
     # fzf.fish: macOS-friendly pure-Ctrl binds (no Alt/Option-as-Meta needed)
     fzf_configure_bindings --directory=ctrl-g --git_log=ctrl-L --git_status=ctrl-k --history=ctrl-r --processes=ctrl-o --variables=ctrl-v
 
-    # fuzzy tab-complete (bind __fzf_complete_token.fish to tab)
-    bind \t __fzf_complete_token
-    bind -M insert \t __fzf_complete_token
-
     # register PWD-hook for k8-user dir autoload (see functions/__k8user_autoload.fish)
     __k8user_autoload
 end
