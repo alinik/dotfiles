@@ -40,9 +40,10 @@ fi
 
 # --- install lsd, jq (used by l/approve_pr/ipinfo fish functions) ---
 if [ "$(uname)" = "Darwin" ]; then
-    command -v brew >/dev/null 2>&1 && brew install lsd jq
+    command -v lsd >/dev/null 2>&1 || brew install lsd
+    command -v jq >/dev/null 2>&1 || brew install jq
 elif [ -f /etc/debian_version ]; then
-    sudo apt-get install -y jq
+    command -v jq >/dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y jq; }
     if ! command -v lsd >/dev/null 2>&1; then
         # not packaged on Ubuntu <24.04; install from upstream .deb release
         LSD_VER="1.2.0"
@@ -54,17 +55,24 @@ elif [ -f /etc/debian_version ]; then
 fi
 
 # --- bootstrap dotfiles bare repo ---
+DOTFILES_GIT="git --git-dir=$HOME/.dotfiles --work-tree=$HOME"
 if [ -d "$HOME/.dotfiles" ]; then
     echo "~/.dotfiles already exists, pulling latest."
-    git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" fetch
+    $DOTFILES_GIT fetch
     RESET_REF=FETCH_HEAD
 else
     git clone --bare https://github.com/alinik/dotfiles.git "$HOME/.dotfiles"
     RESET_REF=HEAD
 fi
-git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" config --local --replace-all status.showUntrackedFiles no
-git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" reset --hard "$RESET_REF"
-git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" submodule update --init --recursive
+$DOTFILES_GIT config --local --replace-all status.showUntrackedFiles no
+
+# never clobber uncommitted local edits on rerun — stash them first
+if [ -n "$($DOTFILES_GIT status --porcelain)" ]; then
+    echo "~/.dotfiles has uncommitted changes; stashing before reset (recover with: $DOTFILES_GIT stash pop)."
+    $DOTFILES_GIT stash push -u -m "setup.sh autostash $(date +%Y-%m-%dT%H:%M:%S)"
+fi
+$DOTFILES_GIT reset --hard "$RESET_REF"
+$DOTFILES_GIT submodule update --init --recursive
 
 # --- fisher + plugins ---
 "$FISH_BIN" -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher && fisher update"
@@ -118,7 +126,9 @@ with open(fish_path, "a") as f:
 PYEOF
 fi
 
-if [ "$SHELL" != "$FISH_BIN" ]; then
+CURRENT_LOGIN_SHELL="$(dscl . -read "$HOME" UserShell 2>/dev/null | awk '{print $2}')"
+[ -n "$CURRENT_LOGIN_SHELL" ] || CURRENT_LOGIN_SHELL="$(getent passwd "$USER" 2>/dev/null | cut -d: -f7)"
+if [ "$CURRENT_LOGIN_SHELL" != "$FISH_BIN" ]; then
     chsh -s "$FISH_BIN"
 fi
 exec "$FISH_BIN"
