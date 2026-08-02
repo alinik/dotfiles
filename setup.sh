@@ -22,6 +22,22 @@ FISH_BIN="$(command -v fish)"
 # register fish as a valid login shell
 grep -qxF "$FISH_BIN" /etc/shells || echo "$FISH_BIN" | sudo tee -a /etc/shells >/dev/null
 
+# --- install diff-so-fancy ---
+if command -v diff-so-fancy >/dev/null 2>&1; then
+    :
+elif [ "$(uname)" = "Darwin" ]; then
+    command -v brew >/dev/null 2>&1 && brew install diff-so-fancy
+else
+    # not packaged in apt; clone user-owned (no sudo, no dubious-ownership issues)
+    mkdir -p "$HOME/bin"
+    if [ ! -d "$HOME/.local/share/diff-so-fancy" ]; then
+        git clone --branch next --depth 1 https://github.com/so-fancy/diff-so-fancy.git "$HOME/.local/share/diff-so-fancy"
+    else
+        git -C "$HOME/.local/share/diff-so-fancy" pull --ff-only
+    fi
+    ln -sf "$HOME/.local/share/diff-so-fancy/diff-so-fancy" "$HOME/bin/diff-so-fancy"
+fi
+
 # --- bootstrap dotfiles bare repo ---
 if [ -d "$HOME/.dotfiles" ]; then
     echo "~/.dotfiles already exists, pulling latest."
