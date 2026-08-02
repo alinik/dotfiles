@@ -42,7 +42,15 @@ fi
 if [ "$(uname)" = "Darwin" ]; then
     command -v brew >/dev/null 2>&1 && brew install lsd jq
 elif [ -f /etc/debian_version ]; then
-    sudo apt-get install -y lsd jq
+    sudo apt-get install -y jq
+    if ! command -v lsd >/dev/null 2>&1; then
+        # not packaged on Ubuntu <24.04; install from upstream .deb release
+        LSD_VER="1.2.0"
+        LSD_ARCH="$(dpkg --print-architecture)"
+        curl -sLo /tmp/lsd.deb "https://github.com/lsd-rs/lsd/releases/download/v${LSD_VER}/lsd_${LSD_VER}_${LSD_ARCH}.deb"
+        sudo dpkg -i /tmp/lsd.deb
+        rm -f /tmp/lsd.deb
+    fi
 fi
 
 # --- bootstrap dotfiles bare repo ---
