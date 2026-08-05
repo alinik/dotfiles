@@ -22,6 +22,12 @@ if status is-interactive
         end
     end
 
+    if test (uname) = Linux
+        alias agi 'apt-get install'
+        alias agu 'apt-get update'
+        alias agud 'apt-get update && apt-get dist-upgrade'
+    end
+
     # zsh global aliases (`alias -g`) -> fish abbr --position anywhere
     abbr -a --position anywhere GG '| grep -Ev "status|metric|Successfully"'
     abbr -a --position anywhere G "|grep --color"
