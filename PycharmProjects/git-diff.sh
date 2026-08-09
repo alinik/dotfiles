@@ -11,92 +11,78 @@ error_exit() {
 # Set up trap to call error_exit on any error
 trap 'error_exit' ERR
 
-AUTO_MERGE=false
-if [[ "${1:-}" == "--merge" ]]; then
-  AUTO_MERGE=true
+MERGE_QC=false
+if [[ "${1:-}" == "--merge-qc" ]]; then
+  MERGE_QC=true
 fi
 
-# Find all Git repos with both master and stage branches
-fd -t d -u -a -E OLD -E DEV -E MD .git$ | sort|while IFS= read -r gitdir; do
+TMP_ROWS="$(mktemp)"
+trap 'rm -f "$TMP_ROWS"' EXIT
+
+# Find all Git repos with master, stage, and qc branches
+fd -t d -u -a -E OLD -E DEV -E MD .git$ | sort | while IFS= read -r gitdir; do
   (
     repo=$(dirname "$gitdir")
-    # Set current repo for error handling
     export CURRENT_REPO="$repo"
-    
-    # echo "Processing repository: $repo"
+
     cd "$repo" || { echo "ERROR: could not enter directory $repo"; exit 1; }
 
-    # Ensure both branches exist locally
-    if git show-ref --quiet refs/heads/master && git show-ref --quiet refs/heads/stage; then
+    if git show-ref --quiet refs/heads/master && git show-ref --quiet refs/heads/stage && git show-ref --quiet refs/heads/qc; then
       git fetch --all --prune --quiet
 
       current_branch=$(git rev-parse --abbrev-ref HEAD)
 
-      # Detect dirty state and stash if needed (include untracked)
       STASHED=false
       if [[ -n "$(git status --porcelain)" ]]; then
-        git stash push -u -q -m "auto-sync $(date +%F_%T)" || echo "  Warning: could not stash changes in $repo."
+        git stash push -u -q -m "auto-sync $(date +%F_%T)" || echo "  Warning: could not stash changes in $repo." >&2
         STASHED=true
       fi
-      # Pull fast-forward on master and stage
-      for b in master stage; do
-        # If current branch equals b, no need to checkout
+
+      for b in master stage qc; do
         if [[ "$(git rev-parse --abbrev-ref HEAD)" != "$b" ]]; then
           git checkout -q "$b"
         fi
-        # Try fast-forward only; if it can't FF, just fetch leaves it as-is
-        git pull --ff-only -q || echo "  Note: $b not fast-forwardable; left unchanged."
+        git pull --ff-only -q || echo "  Note: $b not fast-forwardable; left unchanged." >&2
       done
 
-      # Compute ahead/behind before changes (optional info)
-      ahead=$(git rev-list --count origin/master..origin/stage || echo 0)
-      behind=$(git rev-list --count origin/stage..origin/master || echo 0)
-      dirty_status=$([[ "$STASHED" == "true" ]] && echo "dirty" || echo "clean")
-      if [[ "$ahead" -eq 0 && "$behind" -eq 0 ]]; then
-        # No differences
-        if [[ "$STASHED" == "true" ]]; then
-          # Restore stashed changes if any
-          if git stash list | grep -q "auto-sync"; then
-            git stash pop -q || echo "  Warning: conflicts when restoring stash in $repo."
-          fi
-        fi
-        # Return to original branch if changed
-        if [[ "$(git rev-parse --abbrev-ref HEAD)" != "$current_branch" ]]; then
-          git checkout -q "$current_branch"
-        fi
-        # No output needed for clean repos with no changes
-        continue
-      fi
-      
-      echo "Repo: $repo"
-      echo "  Current branch: $current_branch ($dirty_status before sync)"
-      echo -e "  stage is \033[1;33m$ahead\033[0m ahead, \033[1;31m$behind\033[0m behind master"
+      # stage -> qc
+      stage_qc_ahead=$(git rev-list --count origin/qc..origin/stage || echo 0)
+      stage_qc_behind=$(git rev-list --count origin/stage..origin/qc || echo 0)
 
+      # qc -> master
+      qc_master_ahead=$(git rev-list --count origin/master..origin/qc || echo 0)
+      qc_master_behind=$(git rev-list --count origin/qc..origin/master || echo 0)
 
-      if $AUTO_MERGE; then
-        echo "  Merging master into stage..."
+      if $MERGE_QC && [[ "$stage_qc_behind" -ne 0 ]]; then
+        echo "  Merging qc into stage in $repo ..." >&2
         git checkout -q stage
-        if git merge --no-edit master; then
-          echo "  Merge complete in $repo"
-          git push -q origin stage && echo "  Pushed merged changes to origin/stage"
+        if git merge --no-edit origin/qc; then
+          git push -q origin stage && echo "  Pushed merged qc->stage in $repo" >&2
+          stage_qc_behind=0
         else
-          echo -e "  \033[1;31mMerge conflict detected in $repo\033[0m"
+          echo "  Merge conflict merging qc into stage in $repo" >&2
         fi
       fi
 
-      # Return to original branch
       if [[ "$(git rev-parse --abbrev-ref HEAD)" != "$current_branch" ]]; then
         git checkout -q "$current_branch"
       fi
 
-      # Restore stashed changes if any
       if [[ "$STASHED" == "true" ]]; then
         if git stash list | grep -q "auto-sync"; then
-          git stash pop -q || echo "  Warning: conflicts when restoring stash in $repo."
+          git stash pop -q || echo "  Warning: conflicts when restoring stash in $repo." >&2
         fi
       fi
 
-      echo
+      if [[ "$stage_qc_ahead" -ne 0 || "$stage_qc_behind" -ne 0 || "$qc_master_ahead" -ne 0 || "$qc_master_behind" -ne 0 ]]; then
+        printf '%s\t+%s/-%s\t+%s/-%s\n' "$repo" "$stage_qc_ahead" "$stage_qc_behind" "$qc_master_ahead" "$qc_master_behind" >> "$TMP_ROWS"
+      fi
     fi
   )
 done
+
+# Render table
+{
+  printf 'REPO\tSTAGE→QC (ahead/behind)\tQC→MASTER (ahead/behind)\n'
+  sort "$TMP_ROWS"
+} | column -t -s $'\t'
