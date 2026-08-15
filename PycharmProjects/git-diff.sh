@@ -12,8 +12,11 @@ error_exit() {
 trap 'error_exit' ERR
 
 MERGE_QC=false
-if [[ "${1:-}" == "--merge-qc" ]]; then
+MERGE_MASTER=false
+if [[ "${1:-}" == "--sync-qc" ]]; then
   MERGE_QC=true
+elif [[ "${1:-}" == "--sync-master" ]]; then
+  MERGE_MASTER=true
 fi
 
 TMP_ROWS="$(mktemp)"
@@ -61,6 +64,30 @@ fd -t d -u -a -E OLD -E DEV -E MD .git$ | sort | while IFS= read -r gitdir; do
           stage_qc_behind=0
         else
           echo "  Merge conflict merging qc into stage in $repo" >&2
+        fi
+      fi
+
+      if $MERGE_MASTER; then
+        if [[ "$qc_master_behind" -ne 0 ]]; then
+          echo "  Merging master into qc in $repo ..." >&2
+          git checkout -q qc
+          if git merge --no-edit origin/master; then
+            git push -q origin qc && echo "  Pushed merged master->qc in $repo" >&2
+            qc_master_behind=0
+          else
+            echo "  Merge conflict merging master into qc in $repo" >&2
+          fi
+        fi
+
+        stage_master_behind=$(git rev-list --count origin/stage..origin/master || echo 0)
+        if [[ "$stage_master_behind" -ne 0 ]]; then
+          echo "  Merging master into stage in $repo ..." >&2
+          git checkout -q stage
+          if git merge --no-edit origin/master; then
+            git push -q origin stage && echo "  Pushed merged master->stage in $repo" >&2
+          else
+            echo "  Merge conflict merging master into stage in $repo" >&2
+          fi
         fi
       fi
 

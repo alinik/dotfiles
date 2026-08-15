@@ -1,4 +1,4 @@
-function fish_right_prompt -d "Right prompt: status, git branch (dirty or typing git), kube ctx (typing kubectl)"
+function fish_right_prompt -d "Right prompt: status, git branch (always), kube ctx (typing kubectl)"
     set -l last_status $status
     set -l cmd (commandline)
 
@@ -14,10 +14,8 @@ function fish_right_prompt -d "Right prompt: status, git branch (dirty or typing
 
     set -l git_branch (__git.current_branch 2>/dev/null)
     if test -n "$git_branch"
-        if string match -qr '^\s*git\b' -- $cmd; or __git.is_dirty
-            set -l git_info (__git.prompt_segment)
-            set -a segs (set_color yellow)"($git_info)"(set_color normal)
-        end
+        set -l git_info (__git.prompt_segment)
+        set -a segs (set_color yellow)"($git_info)"(set_color normal)
     end
 
     if set -q VIRTUAL_ENV
