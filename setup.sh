@@ -78,7 +78,9 @@ fi
 
 # --- bootstrap dotfiles bare repo ---
 DOTFILES_GIT="git --git-dir=$HOME/.dotfiles --work-tree=$HOME"
+DOTFILES_ALREADY_EXISTS=false
 if [ -d "$HOME/.dotfiles" ]; then
+    DOTFILES_ALREADY_EXISTS=true
     echo "~/.dotfiles already exists, pulling latest."
     $DOTFILES_GIT fetch
     RESET_REF=FETCH_HEAD
@@ -88,8 +90,10 @@ else
 fi
 $DOTFILES_GIT config --local --replace-all status.showUntrackedFiles no
 
-# never clobber uncommitted local edits on rerun — stash them first
-if [ -n "$($DOTFILES_GIT status --porcelain)" ]; then
+# Never clobber uncommitted local edits on rerun — stash them first. A fresh
+# bare clone has no checkout yet, so its home-directory files must not be
+# treated as changes to stash.
+if [ "$DOTFILES_ALREADY_EXISTS" = true ] && [ -n "$($DOTFILES_GIT status --porcelain)" ]; then
     echo "~/.dotfiles has uncommitted changes; stashing before reset (recover with: $DOTFILES_GIT stash pop)."
     $DOTFILES_GIT stash push -u -m "setup.sh autostash $(date +%Y-%m-%dT%H:%M:%S)"
 fi
