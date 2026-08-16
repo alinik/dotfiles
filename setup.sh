@@ -97,7 +97,21 @@ if [ "$DOTFILES_ALREADY_EXISTS" = true ] && [ -n "$($DOTFILES_GIT status --porce
     echo "~/.dotfiles has uncommitted changes; stashing before reset (recover with: $DOTFILES_GIT stash pop)."
     $DOTFILES_GIT stash push -u -m "setup.sh autostash $(date +%Y-%m-%dT%H:%M:%S)"
 fi
+
+# On a first install, preserve a server-specific key file before checking out
+# the authoritative version committed in dotfiles.
+if [ "$DOTFILES_ALREADY_EXISTS" = false ] \
+    && [ -f "$HOME/.ssh/authorized_keys" ] \
+    && $DOTFILES_GIT cat-file -e "$RESET_REF:.ssh/authorized_keys"; then
+    AUTHORIZED_KEYS_BACKUP="$HOME/.ssh/authorized_keys.before-dotfiles.$(date +%Y%m%dT%H%M%S)"
+    mv "$HOME/.ssh/authorized_keys" "$AUTHORIZED_KEYS_BACKUP"
+    echo "Backed up existing ~/.ssh/authorized_keys to $AUTHORIZED_KEYS_BACKUP"
+fi
 $DOTFILES_GIT reset --hard "$RESET_REF"
+if [ -f "$HOME/.ssh/authorized_keys" ]; then
+    chmod 700 "$HOME/.ssh"
+    chmod 600 "$HOME/.ssh/authorized_keys"
+fi
 
 # --- SSH control socket directory ---
 mkdir -p "$HOME/.ssh/sockets"

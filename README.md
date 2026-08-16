@@ -1,44 +1,57 @@
-Setup:
+# Dotfiles
 
-use:
+Install or refresh this Fish-based environment with:
+
 ```bash
 wget -qO- https://raw.githubusercontent.com/alinik/dotfiles/master/setup.sh | bash
 ```
 
-That script (`setup.sh`) does everything below automatically — install fish (macOS via brew, Ubuntu/Debian via apt PPA), clone the dotfiles bare repo, install fisher + plugins, seed `local.fish` from template, switch shell. Manual steps, if you want to do it by hand:
+The installer supports macOS and Debian/Ubuntu. It installs Fish, configures
+the bare dotfiles repository, optional command-line tools and Fisher plugins,
+then switches the login shell to Fish.
 
+## What setup preserves
+
+- Existing local dotfile changes on a rerun are stashed before the checkout.
+  Recover them with:
+
+  ```bash
+  git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" stash pop
+  ```
+
+- On a first install, an existing `~/.ssh/authorized_keys` is saved as
+  `~/.ssh/authorized_keys.before-dotfiles.<timestamp>`, then the version
+  committed in dotfiles is checked out. Keep the active SSH session open and
+  test a new login before deleting that backup.
+
+- `~/.config/fish/local.fish` is not tracked. Setup creates it from
+  `local.fish.example` when needed; add machine-local secrets there.
+
+## Updating dotfiles
+
+The repository is bare, with `$HOME` as its work tree:
 
 ```bash
-# --- install fish ---
-# macOS:
-brew install fish
-# Ubuntu/Debian:
-sudo apt-add-repository -y ppa:fish-shell/release-3 && sudo apt-get update && sudo apt-get install -y fish
+# In Fish, after setup:
+config pull --ff-only
 
-FISH_BIN="$(command -v fish)"
-
-# register fish as a valid login shell
-echo "$FISH_BIN" | sudo tee -a /etc/shells
-
-# --- bootstrap dotfiles bare repo ---
-alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
-git clone --bare https://github.com/alinik/dotfiles.git $HOME/.dotfiles
-git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME config --local --add status.showUntrackedFiles no
-git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME reset --hard
-
-chsh -s "$FISH_BIN"
-fish
-
-# install fisher (fish plugin manager)
-curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source
-fisher install jorgebucaran/fisher
-
-# install plugins (reads ~/.config/fish/fish_plugins, already restored by dotfiles reset above)
-fisher update
-
-# secrets/local env are NOT tracked in dotfiles — restore separately
-cp ~/.config/fish/local.fish.example ~/.config/fish/local.fish
-chmod 600 ~/.config/fish/local.fish
-# edit local.fish with real values, then:
-source ~/.config/fish/config.fish
+# In any shell:
+git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" pull --ff-only
 ```
+
+The Fish startup update check refreshes dotfiles and Fisher at most once every
+seven days. If an existing server has an untracked `authorized_keys` file,
+back it up before the first pull so the committed version can be checked out:
+
+```bash
+mv ~/.ssh/authorized_keys ~/.ssh/authorized_keys.before-dotfiles
+config pull --ff-only
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
+
+## Included tools
+
+Optional tooling includes `diff-so-fancy`, `lsd`, `jq`, `bat`/`batcat`,
+Ripgrep, and `fd`/`fdfind`. Failed optional installations print a warning and
+do not stop setup.
