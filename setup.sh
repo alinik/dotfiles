@@ -74,6 +74,14 @@ fi
 $DOTFILES_GIT reset --hard "$RESET_REF"
 $DOTFILES_GIT submodule update --init --recursive
 
+# --- SSH control socket directory ---
+mkdir -p "$HOME/.ssh/sockets"
+
+# --- iTerm2 shell integration (install on local and SSH hosts) ---
+if [ ! -f "$HOME/.iterm2_shell_integration.fish" ]; then
+    curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
+fi
+
 # --- fisher + plugins ---
 "$FISH_BIN" -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher && fisher update"
 
