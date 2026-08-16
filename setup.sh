@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+install_optional() {
+    if ! "$@"; then
+        echo "Warning: optional installation failed: $*; continuing setup." >&2
+    fi
+}
+
 # --- install fish ---
 if command -v fish >/dev/null 2>&1; then
     :
@@ -26,30 +32,46 @@ grep -qxF "$FISH_BIN" /etc/shells || echo "$FISH_BIN" | sudo tee -a /etc/shells 
 if command -v diff-so-fancy >/dev/null 2>&1; then
     :
 elif [ "$(uname)" = "Darwin" ]; then
-    command -v brew >/dev/null 2>&1 && brew install diff-so-fancy
+    command -v brew >/dev/null 2>&1 && install_optional brew install diff-so-fancy
 else
     # not packaged in apt; clone user-owned (no sudo, no dubious-ownership issues)
     mkdir -p "$HOME/bin"
     if [ ! -d "$HOME/.local/share/diff-so-fancy" ]; then
-        git clone --branch next --depth 1 https://github.com/so-fancy/diff-so-fancy.git "$HOME/.local/share/diff-so-fancy"
+        install_optional git clone --branch next --depth 1 https://github.com/so-fancy/diff-so-fancy.git "$HOME/.local/share/diff-so-fancy"
     else
-        git -C "$HOME/.local/share/diff-so-fancy" pull --ff-only
+        install_optional git -C "$HOME/.local/share/diff-so-fancy" pull --ff-only
     fi
-    ln -sf "$HOME/.local/share/diff-so-fancy/diff-so-fancy" "$HOME/bin/diff-so-fancy"
+    if [ -f "$HOME/.local/share/diff-so-fancy/diff-so-fancy" ]; then
+        ln -sf "$HOME/.local/share/diff-so-fancy/diff-so-fancy" "$HOME/bin/diff-so-fancy"
+    fi
 fi
 
-# --- install lsd, jq (used by l/approve_pr/ipinfo fish functions) ---
+# --- install optional CLI tools used by Fish functions ---
 if [ "$(uname)" = "Darwin" ]; then
-    command -v lsd >/dev/null 2>&1 || brew install lsd
-    command -v jq >/dev/null 2>&1 || brew install jq
+    command -v lsd >/dev/null 2>&1 || install_optional brew install lsd
+    command -v jq >/dev/null 2>&1 || install_optional brew install jq
+    command -v bat >/dev/null 2>&1 || install_optional brew install bat
+    command -v rg >/dev/null 2>&1 || install_optional brew install ripgrep
+    command -v fd >/dev/null 2>&1 || install_optional brew install fd
 elif [ -f /etc/debian_version ]; then
-    command -v jq >/dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y jq; }
+    DEBIAN_PACKAGES=()
+    command -v jq >/dev/null 2>&1 || DEBIAN_PACKAGES+=(jq)
+    command -v batcat >/dev/null 2>&1 || DEBIAN_PACKAGES+=(bat)
+    command -v rg >/dev/null 2>&1 || DEBIAN_PACKAGES+=(ripgrep)
+    command -v fdfind >/dev/null 2>&1 || DEBIAN_PACKAGES+=(fd-find)
+    if [ "${#DEBIAN_PACKAGES[@]}" -gt 0 ]; then
+        install_optional sudo apt-get update
+        install_optional sudo apt-get install -y "${DEBIAN_PACKAGES[@]}"
+    fi
     if ! command -v lsd >/dev/null 2>&1; then
         # not packaged on Ubuntu <24.04; install from upstream .deb release
         LSD_VER="1.2.0"
         LSD_ARCH="$(dpkg --print-architecture)"
-        curl -sLo /tmp/lsd.deb "https://github.com/lsd-rs/lsd/releases/download/v${LSD_VER}/lsd_${LSD_VER}_${LSD_ARCH}.deb"
-        sudo dpkg -i /tmp/lsd.deb
+        if curl -sLo /tmp/lsd.deb "https://github.com/lsd-rs/lsd/releases/download/v${LSD_VER}/lsd_${LSD_VER}_${LSD_ARCH}.deb"; then
+            install_optional sudo dpkg -i /tmp/lsd.deb
+        else
+            echo "Warning: optional lsd download failed; continuing setup." >&2
+        fi
         rm -f /tmp/lsd.deb
     fi
 fi
@@ -72,18 +94,21 @@ if [ -n "$($DOTFILES_GIT status --porcelain)" ]; then
     $DOTFILES_GIT stash push -u -m "setup.sh autostash $(date +%Y-%m-%dT%H:%M:%S)"
 fi
 $DOTFILES_GIT reset --hard "$RESET_REF"
-$DOTFILES_GIT submodule update --init --recursive
 
 # --- SSH control socket directory ---
 mkdir -p "$HOME/.ssh/sockets"
 
 # --- iTerm2 shell integration (install on local and SSH hosts) ---
 if [ ! -f "$HOME/.iterm2_shell_integration.fish" ]; then
-    curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
+    if ! curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash; then
+        echo "Warning: optional iTerm2 integration installation failed; continuing setup." >&2
+    fi
 fi
 
 # --- fisher + plugins ---
-"$FISH_BIN" -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher && fisher update"
+if ! "$FISH_BIN" -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher && fisher update"; then
+    echo "Warning: optional Fisher plugin installation failed; continuing setup." >&2
+fi
 
 # --- local secrets template (never tracked in dotfiles) ---
 if [ ! -f "$HOME/.config/fish/local.fish" ] && [ -f "$HOME/.config/fish/local.fish.example" ]; then
