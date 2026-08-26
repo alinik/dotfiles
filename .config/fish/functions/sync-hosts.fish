@@ -1,36 +1,51 @@
-function sync-hosts --description 'Sync the Bitmax managed block to /etc/hosts'
-    set -l primary_hostname Bagheri-MacBook-Pro
-    set -l project_source /Users/ali/PycharmProjects/DEV/dns/dnsdist
-    set -l source_file $HOME/.local/dotfiles/hosts
+function sync-hosts --description 'Safely sync the managed DNS hosts block to /etc/hosts'
+    set -l dns_repository /Users/ali/PycharmProjects/DEV/dns
+    set -l source_file $dns_repository/dnsdist/hosts
+    set -l source_is_default 1
     set -l hosts_file /etc/hosts
     set -l begin_marker '# -----BEGIN /etc/hosts----- #'
     set -l end_marker '# -----END /etc/hosts----- #'
     set -l action sync
+    set -l dry_run 0
 
-    if test (count $argv) -gt 1; or test (count $argv) -eq 1 -a "$argv[1]" != remove
-        echo 'Usage: sync-hosts [remove]' >&2
-        return 2
+    # Allow a one-off source without editing this function.
+    if set -q SYNC_HOSTS_SOURCE
+        set source_file $SYNC_HOSTS_SOURCE
+        set source_is_default 0
     end
 
-    if test (count $argv) -eq 1
-        set action $argv[1]
-    end
-
-    if test (command hostname) = $primary_hostname
-        if not test -r $project_source
-            echo "sync-hosts: Cannot read $project_source" >&2
-            return 1
-        end
-
-        if not cp $project_source $source_file
-            echo "sync-hosts: Failed to refresh $source_file" >&2
-            return 1
+    for argument in $argv
+        switch $argument
+            case sync remove status
+                if test $action != sync
+                    echo 'Usage: sync-hosts [sync|remove|status] [--dry-run]' >&2
+                    return 2
+                end
+                set action $argument
+            case --dry-run -n
+                set dry_run 1
+            case '*'
+                echo 'Usage: sync-hosts [sync|remove|status] [--dry-run]' >&2
+                return 2
         end
     end
 
     if not test -r $hosts_file
         echo "sync-hosts: Cannot read $hosts_file" >&2
         return 1
+    end
+
+    # Keep the default DNS source current, but never merge or overwrite local work.
+    if test $action = sync; and test $source_is_default -eq 1
+        if not test -d $dns_repository
+            echo "sync-hosts: Cannot find DNS repository at $dns_repository" >&2
+            return 1
+        end
+
+        if not git -C $dns_repository pull --ff-only
+            echo 'sync-hosts: Failed to update the DNS repository' >&2
+            return 1
+        end
     end
 
     set -l cleaned_file (mktemp -t sync-hosts-cleaned.XXXXXX)
@@ -41,12 +56,39 @@ function sync-hosts --description 'Sync the Bitmax managed block to /etc/hosts'
         return 1
     end
 
-    # Remove every previously managed block, including its marker lines.
+    # Reject malformed managed blocks instead of silently deleting unrelated lines.
     awk -v begin="$begin_marker" -v end="$end_marker" '
-        $0 == begin { managed = 1; next }
-        managed && $0 == end { managed = 0; next }
+        $0 == begin {
+            if (managed || ++found_begin > 1) exit 1
+            managed = 1
+            next
+        }
+        $0 == end {
+            if (!managed || ++found_end > 1) exit 1
+            managed = 0
+            next
+        }
         !managed { print }
+        END {
+            if (managed || found_begin != found_end) exit 1
+        }
     ' $hosts_file >$cleaned_file
+
+    if test $status -ne 0
+        echo 'sync-hosts: /etc/hosts has a malformed or duplicate managed block; refusing to change it' >&2
+        rm -f $cleaned_file $result_file
+        return 1
+    end
+
+    if test $action = status
+        if cmp -s $hosts_file $cleaned_file
+            echo 'No managed block is installed in /etc/hosts'
+        else
+            echo 'A managed block is installed in /etc/hosts'
+        end
+        rm -f $cleaned_file $result_file
+        return 0
+    end
 
     if test $action = remove
         cp $cleaned_file $result_file
@@ -64,17 +106,22 @@ function sync-hosts --description 'Sync the Bitmax managed block to /etc/hosts'
         end
 
         awk -v begin="$begin_marker" -v end="$end_marker" '
-            $0 == begin { found_begin++; managed = 1 }
+            $0 == begin {
+                if (managed || ++found_begin > 1) exit 1
+                managed = 1
+            }
             managed { print }
-            managed && $0 == end { found_end++; managed = 0 }
+            $0 == end {
+                if (++found_end > 1) exit 1
+                managed = 0
+            }
             END {
-                if (found_begin != 1 || found_end != 1 || managed)
-                    exit 1
+                if (managed || found_begin != 1 || found_end != 1) exit 1
             }
         ' $source_file >$managed_block
 
         if test $status -ne 0
-            echo 'sync-hosts: The source must contain exactly one complete managed block' >&2
+            echo 'sync-hosts: Source must contain exactly one complete managed block' >&2
             rm -f $cleaned_file $result_file $managed_block
             return 1
         end
@@ -82,6 +129,19 @@ function sync-hosts --description 'Sync the Bitmax managed block to /etc/hosts'
         cp $cleaned_file $result_file
         cat $managed_block >>$result_file
         rm -f $managed_block
+    end
+
+    if cmp -s $hosts_file $result_file
+        echo '/etc/hosts is already up to date'
+        rm -f $cleaned_file $result_file
+        return 0
+    end
+
+    if test $dry_run -eq 1
+        diff -u $hosts_file $result_file
+        set -l diff_status $status
+        rm -f $cleaned_file $result_file
+        return (test $diff_status -le 1; and echo 0; or echo $diff_status)
     end
 
     sudo install -m 0644 $result_file $hosts_file

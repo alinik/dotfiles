@@ -90,14 +90,6 @@ else
 fi
 $DOTFILES_GIT config --local --replace-all status.showUntrackedFiles no
 
-# Never clobber uncommitted local edits on rerun — stash them first. A fresh
-# bare clone has no checkout yet, so its home-directory files must not be
-# treated as changes to stash.
-if [ "$DOTFILES_ALREADY_EXISTS" = true ] && [ -n "$($DOTFILES_GIT status --porcelain)" ]; then
-    echo "~/.dotfiles has uncommitted changes; stashing before reset (recover with: $DOTFILES_GIT stash pop)."
-    $DOTFILES_GIT stash push -u -m "setup.sh autostash $(date +%Y-%m-%dT%H:%M:%S)"
-fi
-
 # On a first install, preserve a server-specific key file before checking out
 # the authoritative version committed in dotfiles.
 if [ "$DOTFILES_ALREADY_EXISTS" = false ] \

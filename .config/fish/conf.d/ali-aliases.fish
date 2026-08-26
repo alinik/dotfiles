@@ -1,6 +1,14 @@
 if status is-interactive
     alias fps 'ps -ef | grep -v grep | grep'
     alias catc 'pygmentize -g'
+    # bat as cat, when it is installed (Debian ships the binary as batcat).
+    # --paging=never keeps it non-blocking like cat; bat already drops its
+    # decorations automatically when stdout is not a terminal.
+    if command -q bat
+        alias cat 'bat --paging=never'
+    else if command -q batcat
+        alias cat 'batcat --paging=never'
+    end
     alias dm 'du -axh . | sort -hr | head -n 30'
     alias config 'git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
     alias cmdb 'git --git-dir=/root/.cmdb --work-tree=/' # mkdir /root/.cmdb && cd /root/.cmdb && git init --bare .
