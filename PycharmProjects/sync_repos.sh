@@ -7,14 +7,16 @@
 
 # Configuration
 BITBUCKET_URL="https://git.maxpool.ir"
-BITBUCKET_APIKEY="BBDC-Nzk4NTk3NDYyODg4OhoPYTlbPiAcgH6hfHIYiF7EEQVD"
-AUTH_HEADER="Authorization: Bearer $BITBUCKET_APIKEY"
 
-# Check if BITBUCKET_APIKEY is set
+# Check if BITBUCKET_APIKEY is set (never hardcode the token here)
 if [ -z "$BITBUCKET_APIKEY" ]; then
-  echo "Error: BITBUCKET_APIKEY environment variable is not set."
+  echo "Error: BITBUCKET_APIKEY environment variable is not set." >&2
+  echo "Set it in ~/.config/fish/local.fish (fish) or your shell profile:" >&2
+  echo "  set -gx BITBUCKET_APIKEY '<bitbucket-http-access-token>'" >&2
   exit 1
 fi
+
+AUTH_HEADER="Authorization: Bearer $BITBUCKET_APIKEY"
 
 # Function to fetch all items with pagination
 fetch_all_items() {
@@ -77,8 +79,23 @@ echo "$projects" | while read -r project; do
       git fetch --all
       if [ $? -ne 0 ]; then
         echo "Error: Failed to fetch updates for repository $repo_slug"
-      # else
-        # echo "Successfully fetched updates for $repo_slug"
+      else
+        # Advance the checked-out branch too, so working trees (and the
+        # CodeGraph indexes built from them below) don't go stale.
+        # ff-only merge: never creates merge commits, never rewrites
+        # history — a diverged branch is reported and left untouched.
+        # Skipped when tracked files are modified (-uno: untracked files
+        # alone don't block; git itself aborts the merge if one would be
+        # overwritten) or when HEAD is detached / has no upstream.
+        if [ -z "$(git status --porcelain -uno)" ] \
+          && git symbolic-ref -q HEAD >/dev/null \
+          && git rev-parse -q --verify '@{u}' >/dev/null 2>&1; then
+          if ! git merge --ff-only '@{u}' >/dev/null 2>&1; then
+            echo "note: $repo_slug — current branch diverged from upstream, left untouched"
+          fi
+        else
+          echo "note: $repo_slug — dirty/detached/no-upstream, working tree not advanced"
+        fi
       fi
       cd ..
     else
@@ -106,6 +123,33 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INDEX_FILE="$ROOT_DIR/PROJECT_INDEX.md"
 ACTIVE_GROUPS=(EB EF COM BC DEV AI CMDB)
 INACTIVE_GROUPS=(MD EXTRA OLD ER)
+
+# ---------------------------------------------------------------------------
+# CodeGraph index maintenance — active groups only (OLD/EXTRA/MD/ER excluded
+# on purpose, see PROJECT_INDEX.md inactive-groups section). init builds a
+# missing index, sync refreshes an existing one incrementally. Best-effort:
+# an index failure never fails the repo sync.
+# ---------------------------------------------------------------------------
+if command -v codegraph >/dev/null 2>&1; then
+  echo "Maintaining CodeGraph indexes (active groups)..."
+  for group in "${ACTIVE_GROUPS[@]}"; do
+    [ -d "$ROOT_DIR/$group" ] || continue
+    for repo in "$ROOT_DIR/$group"/*/; do
+      [ -d "$repo/.git" ] || continue
+      repo=${repo%/}
+      if [ -d "$repo/.codegraph" ]; then
+        (cd "$repo" && codegraph sync . >/dev/null 2>&1) \
+          || echo "warn: codegraph sync failed for $repo"
+      else
+        echo "Indexing (codegraph init): $repo"
+        (cd "$repo" && codegraph init . >/dev/null 2>&1) \
+          || echo "warn: codegraph init failed for $repo"
+      fi
+    done
+  done
+else
+  echo "codegraph not on PATH — skipping index maintenance"
+fi
 
 sniff_stack() {
   local repo_path="$1"
