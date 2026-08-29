@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# Print which commit is running. Can't embed our own hash (content would
+# have to hash itself), so ask the remote instead — works even via
+# `wget -qO- URL | bash`, and git's smart-HTTP has a much higher rate
+# limit than the GitHub REST API fisher hits later.
+SETUP_SH_COMMIT="$(git ls-remote https://github.com/alinik/dotfiles.git master 2>/dev/null | cut -f1)"
+echo "setup.sh @ ${SETUP_SH_COMMIT:-unknown (couldn't reach GitHub)}"
+
 install_optional() {
     if ! "$@"; then
         echo "Warning: optional installation failed: $*; continuing setup." >&2
