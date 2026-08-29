@@ -142,7 +142,11 @@ fi
 
 FISHER_TRIES=0
 FISHER_MAX_TRIES=3
-until "$FISH_BIN" -c "$FISHER_CMD"; do
+# stdin starved deliberately: when setup.sh itself is run via `curl|bash` /
+# `wget -qO-|bash`, fd 0 is the pipe carrying the REST of this script.
+# Fisher reads stdin internally; without </dev/null it drains that pipe and
+# the remainder of setup.sh gets fed to fisher as garbage plugin names.
+until "$FISH_BIN" -c "$FISHER_CMD" < /dev/null; do
     FISHER_TRIES=$((FISHER_TRIES + 1))
     if [ "$FISHER_TRIES" -ge "$FISHER_MAX_TRIES" ]; then
         echo "Warning: optional Fisher plugin installation failed after $FISHER_MAX_TRIES tries (rate limit?); continuing setup." >&2
