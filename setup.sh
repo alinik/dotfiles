@@ -107,30 +107,15 @@ fi
 $DOTFILES_GIT config --local --replace-all status.showUntrackedFiles no
 
 # Before checking out the authoritative version committed in dotfiles,
-# preserve a server-specific key file if it differs from the incoming one
-# (covers both first install AND an existing-but-stale ~/.dotfiles).
+# back up a differing local key file (covers first install, stale
+# ~/.dotfiles, and the "repo just started tracking it" transition).
+# Repo always wins — this backup is a safety net only, not a prompt.
 if [ -f "$HOME/.ssh/authorized_keys" ] \
-    && $DOTFILES_GIT cat-file -e "$RESET_REF:.ssh/authorized_keys" 2>/dev/null; then
-
-    OLD_TRACKS_KEYS=false
-    if [ "$DOTFILES_ALREADY_EXISTS" = true ] \
-        && $DOTFILES_GIT cat-file -e HEAD:.ssh/authorized_keys 2>/dev/null; then
-        OLD_TRACKS_KEYS=true
-    fi
-
-    if [ "$DOTFILES_ALREADY_EXISTS" = true ] && [ "$OLD_TRACKS_KEYS" = false ]; then
-        echo "ERROR: incoming dotfiles now track .ssh/authorized_keys, but your local" >&2
-        echo "~/.dotfiles (old version) never did. Refusing to auto-overwrite" >&2
-        echo "$HOME/.ssh/authorized_keys — review manually, e.g.:" >&2
-        echo "  diff <($DOTFILES_GIT cat-file -p $RESET_REF:.ssh/authorized_keys) $HOME/.ssh/authorized_keys" >&2
-        exit 1
-    fi
-
-    if ! $DOTFILES_GIT cat-file -p "$RESET_REF:.ssh/authorized_keys" | cmp -s - "$HOME/.ssh/authorized_keys"; then
-        AUTHORIZED_KEYS_BACKUP="$HOME/.ssh/authorized_keys.before-dotfiles.$(date +%Y%m%dT%H%M%S)"
-        cp "$HOME/.ssh/authorized_keys" "$AUTHORIZED_KEYS_BACKUP"
-        echo "Backed up existing ~/.ssh/authorized_keys to $AUTHORIZED_KEYS_BACKUP (differs from incoming dotfiles version)"
-    fi
+    && $DOTFILES_GIT cat-file -e "$RESET_REF:.ssh/authorized_keys" 2>/dev/null \
+    && ! $DOTFILES_GIT cat-file -p "$RESET_REF:.ssh/authorized_keys" | cmp -s - "$HOME/.ssh/authorized_keys"; then
+    AUTHORIZED_KEYS_BACKUP="$HOME/.ssh/authorized_keys.before-dotfiles.$(date +%Y%m%dT%H%M%S)"
+    cp "$HOME/.ssh/authorized_keys" "$AUTHORIZED_KEYS_BACKUP"
+    echo "Backed up existing ~/.ssh/authorized_keys to $AUTHORIZED_KEYS_BACKUP (differs from incoming dotfiles version); repo version will be used."
 fi
 $DOTFILES_GIT reset --hard "$RESET_REF"
 if [ -f "$HOME/.ssh/authorized_keys" ]; then
