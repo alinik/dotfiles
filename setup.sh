@@ -127,8 +127,11 @@ fi
 mkdir -p "$HOME/.ssh/sockets"
 
 # --- iTerm2 shell integration (install on local and SSH hosts) ---
+# The installer picks which shell's integration file to write based on
+# $SHELL. Force it to fish here — otherwise, on a box not yet chsh'd to
+# fish, it only writes the .zsh file and this step re-downloads every run.
 if [ ! -f "$HOME/.iterm2_shell_integration.fish" ]; then
-    if ! curl --connect-timeout 5 --max-time 20 -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash; then
+    if ! curl --connect-timeout 5 --max-time 20 -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | SHELL="$FISH_BIN" bash; then
         echo "Warning: optional iTerm2 integration installation failed; continuing setup." >&2
     fi
 fi
