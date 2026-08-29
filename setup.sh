@@ -8,11 +8,23 @@ install_optional() {
 }
 
 # --- install fish ---
-if command -v fish >/dev/null 2>&1; then
+MIN_FISH_VERSION="3.7.0"
+
+fish_version_ok() {
+    command -v fish >/dev/null 2>&1 || return 1
+    CUR_FISH_VERSION="$(fish --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+    [ "$(printf '%s\n%s' "$MIN_FISH_VERSION" "$CUR_FISH_VERSION" | sort -V | head -1)" = "$MIN_FISH_VERSION" ]
+}
+
+if fish_version_ok; then
     :
 elif [ "$(uname)" = "Darwin" ]; then
     command -v brew >/dev/null 2>&1 || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    brew install fish
+    if command -v fish >/dev/null 2>&1; then
+        brew upgrade fish
+    else
+        brew install fish
+    fi
 elif [ -f /etc/debian_version ]; then
     sudo apt-get update
     sudo apt-add-repository -y ppa:fish-shell/release-4
@@ -21,6 +33,10 @@ elif [ -f /etc/debian_version ]; then
 else
     echo "Unsupported OS: install fish manually, then re-run this script." >&2
     exit 1
+fi
+
+if ! fish_version_ok; then
+    echo "Warning: fish version still below $MIN_FISH_VERSION after install/upgrade attempt." >&2
 fi
 
 FISH_BIN="$(command -v fish)"
@@ -67,10 +83,10 @@ elif [ -f /etc/debian_version ]; then
         # not packaged on Ubuntu <24.04; install from upstream .deb release
         LSD_VER="1.2.0"
         LSD_ARCH="$(dpkg --print-architecture)"
-        if curl -sLo /tmp/lsd.deb "https://github.com/lsd-rs/lsd/releases/download/v${LSD_VER}/lsd_${LSD_VER}_${LSD_ARCH}.deb"; then
+        if curl --connect-timeout 5 --max-time 20 -sLo /tmp/lsd.deb "https://github.com/lsd-rs/lsd/releases/download/v${LSD_VER}/lsd_${LSD_VER}_${LSD_ARCH}.deb"; then
             install_optional sudo dpkg -i /tmp/lsd.deb
         else
-            echo "Warning: optional lsd download failed; continuing setup." >&2
+            echo "Warning: optional lsd download failed (no GitHub access?); continuing setup." >&2
         fi
         rm -f /tmp/lsd.deb
     fi
@@ -90,14 +106,31 @@ else
 fi
 $DOTFILES_GIT config --local --replace-all status.showUntrackedFiles no
 
-# On a first install, preserve a server-specific key file before checking out
-# the authoritative version committed in dotfiles.
-if [ "$DOTFILES_ALREADY_EXISTS" = false ] \
-    && [ -f "$HOME/.ssh/authorized_keys" ] \
-    && $DOTFILES_GIT cat-file -e "$RESET_REF:.ssh/authorized_keys"; then
-    AUTHORIZED_KEYS_BACKUP="$HOME/.ssh/authorized_keys.before-dotfiles.$(date +%Y%m%dT%H%M%S)"
-    mv "$HOME/.ssh/authorized_keys" "$AUTHORIZED_KEYS_BACKUP"
-    echo "Backed up existing ~/.ssh/authorized_keys to $AUTHORIZED_KEYS_BACKUP"
+# Before checking out the authoritative version committed in dotfiles,
+# preserve a server-specific key file if it differs from the incoming one
+# (covers both first install AND an existing-but-stale ~/.dotfiles).
+if [ -f "$HOME/.ssh/authorized_keys" ] \
+    && $DOTFILES_GIT cat-file -e "$RESET_REF:.ssh/authorized_keys" 2>/dev/null; then
+
+    OLD_TRACKS_KEYS=false
+    if [ "$DOTFILES_ALREADY_EXISTS" = true ] \
+        && $DOTFILES_GIT cat-file -e HEAD:.ssh/authorized_keys 2>/dev/null; then
+        OLD_TRACKS_KEYS=true
+    fi
+
+    if [ "$DOTFILES_ALREADY_EXISTS" = true ] && [ "$OLD_TRACKS_KEYS" = false ]; then
+        echo "ERROR: incoming dotfiles now track .ssh/authorized_keys, but your local" >&2
+        echo "~/.dotfiles (old version) never did. Refusing to auto-overwrite" >&2
+        echo "$HOME/.ssh/authorized_keys — review manually, e.g.:" >&2
+        echo "  diff <($DOTFILES_GIT cat-file -p $RESET_REF:.ssh/authorized_keys) $HOME/.ssh/authorized_keys" >&2
+        exit 1
+    fi
+
+    if ! $DOTFILES_GIT cat-file -p "$RESET_REF:.ssh/authorized_keys" | cmp -s - "$HOME/.ssh/authorized_keys"; then
+        AUTHORIZED_KEYS_BACKUP="$HOME/.ssh/authorized_keys.before-dotfiles.$(date +%Y%m%dT%H%M%S)"
+        cp "$HOME/.ssh/authorized_keys" "$AUTHORIZED_KEYS_BACKUP"
+        echo "Backed up existing ~/.ssh/authorized_keys to $AUTHORIZED_KEYS_BACKUP (differs from incoming dotfiles version)"
+    fi
 fi
 $DOTFILES_GIT reset --hard "$RESET_REF"
 if [ -f "$HOME/.ssh/authorized_keys" ]; then
@@ -110,15 +143,29 @@ mkdir -p "$HOME/.ssh/sockets"
 
 # --- iTerm2 shell integration (install on local and SSH hosts) ---
 if [ ! -f "$HOME/.iterm2_shell_integration.fish" ]; then
-    if ! curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash; then
+    if ! curl --connect-timeout 5 --max-time 20 -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash; then
         echo "Warning: optional iTerm2 integration installation failed; continuing setup." >&2
     fi
 fi
 
 # --- fisher + plugins ---
-if ! "$FISH_BIN" -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher && fisher update"; then
-    echo "Warning: optional Fisher plugin installation failed; continuing setup." >&2
+if [ -f "$HOME/.config/fish/functions/fisher.fish" ]; then
+    FISHER_CMD="fisher update"
+else
+    FISHER_CMD="curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher && fisher update"
 fi
+
+FISHER_TRIES=0
+FISHER_MAX_TRIES=3
+until "$FISH_BIN" -c "$FISHER_CMD"; do
+    FISHER_TRIES=$((FISHER_TRIES + 1))
+    if [ "$FISHER_TRIES" -ge "$FISHER_MAX_TRIES" ]; then
+        echo "Warning: optional Fisher plugin installation failed after $FISHER_MAX_TRIES tries (rate limit?); continuing setup." >&2
+        break
+    fi
+    echo "Fisher install/update failed, retry $FISHER_TRIES/$FISHER_MAX_TRIES in 30s..." >&2
+    sleep 30
+done
 
 # --- local secrets template (never tracked in dotfiles) ---
 if [ ! -f "$HOME/.config/fish/local.fish" ] && [ -f "$HOME/.config/fish/local.fish.example" ]; then
