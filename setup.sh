@@ -47,6 +47,10 @@ if ! fish_version_ok; then
 fi
 
 FISH_BIN="$(command -v fish)"
+if [ -z "$FISH_BIN" ]; then
+    echo "Error: fish not found on PATH after install step. PATH=$PATH" >&2
+    exit 1
+fi
 
 # register fish as a valid login shell
 grep -qxF "$FISH_BIN" /etc/shells || echo "$FISH_BIN" | sudo tee -a /etc/shells >/dev/null
@@ -175,22 +179,36 @@ fi
 
 "$FISH_BIN" -c 'set -U fish_greeting ""'
 
-# --- migrate zsh history to fish (one-time) ---
+# --- migrate bash/zsh history to fish (one-time) ---
 FISH_HISTORY="$HOME/.local/share/fish/fish_history"
-if [ "$SHELL" != "$FISH_BIN" ] && [ -f "$HOME/.zsh_history" ] && [ ! -s "$FISH_HISTORY" ]; then
-    echo "Migrating zsh history to fish..."
+case "$(basename "$SHELL")" in
+    zsh) SRC_SHELL_HISTORY="$HOME/.zsh_history" ;;
+    bash) SRC_SHELL_HISTORY="$HOME/.bash_history" ;;
+    *) SRC_SHELL_HISTORY="" ;;
+esac
+
+if [ "$SHELL" != "$FISH_BIN" ] && [ -n "$SRC_SHELL_HISTORY" ] && [ -f "$SRC_SHELL_HISTORY" ] && [ ! -s "$FISH_HISTORY" ]; then
+    echo "Migrating $(basename "$SHELL") history to fish..."
     mkdir -p "$(dirname "$FISH_HISTORY")"
-    python3 - "$HOME/.zsh_history" "$FISH_HISTORY" <<'PYEOF'
+    python3 - "$SRC_SHELL_HISTORY" "$FISH_HISTORY" <<'PYEOF'
 import re
 import sys
 import pathlib
 
-zsh_path, fish_path = sys.argv[1], sys.argv[2]
-text = pathlib.Path(zsh_path).read_text(errors="ignore")
+src_path, fish_path = sys.argv[1], sys.argv[2]
+text = pathlib.Path(src_path).read_text(errors="ignore")
 
+# Handles three source formats, auto-detected line by line:
+#   zsh extended history: ": <ts>:<dur>;<cmd>"
+#   bash extended history (HISTTIMEFORMAT set): "#<ts>" line followed by "<cmd>"
+#   plain history: bare "<cmd>" lines, no timestamp
 entries = []
 buf = ""
+pending_ts = None
 for line in text.splitlines():
+    if not buf and re.match(r"^#\d+$", line):
+        pending_ts = int(line[1:])
+        continue
     buf = buf + "\n" + line if buf else line
     if buf.endswith("\\"):
         buf = buf[:-1]
@@ -199,8 +217,9 @@ for line in text.splitlines():
     if m:
         entries.append((int(m.group(1)), m.group(3)))
     elif buf.strip():
-        entries.append((None, buf))
+        entries.append((pending_ts, buf))
     buf = ""
+    pending_ts = None
 
 def fish_escape(cmd):
     return cmd.replace("\\", "\\\\").replace("\n", "\\n")
