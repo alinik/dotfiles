@@ -6,7 +6,7 @@ set -e
 # `wget -qO- URL | bash`, and git's smart-HTTP has a much higher rate
 # limit than the GitHub REST API fisher hits later.
 SETUP_SH_COMMIT="$(git ls-remote https://github.com/alinik/dotfiles.git master 2>/dev/null | cut -f1)"
-echo "setup.sh @ ${SETUP_SH_COMMIT:-unknown (couldn't reach GitHub)}"
+echo "setup.sh @ ${SETUP_SH_COMMIT:-unknown, could not reach GitHub}"
 
 install_optional() {
     if ! "$@"; then
